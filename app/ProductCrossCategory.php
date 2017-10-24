@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ModelProduct extends Model
+class ProductCrossCategory extends Model
 {
     //
-    protected $table = 'contihogar_model_product';
+    protected $table = 'contihogar_product_crosscategory';
     public $timestamps = false;
 }

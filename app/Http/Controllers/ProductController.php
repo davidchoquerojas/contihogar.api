@@ -12,6 +12,10 @@ use App\ProductItem;
 use App\ProductItemLang;
 use App\ProductItemCaracteristica;
 
+use App\Models;
+use App\ModelProduct;
+use App\ProductCrossCategory;
+
 class ProductController extends Controller
 {
     /**
@@ -84,7 +88,7 @@ class ProductController extends Controller
             $mProduct->available_for_order = 1;
             //$mProduct->available_date = \DateTime('today');
             $mProduct->show_condition = 0;
-            $mProduct->condition = "new";
+            $mProduct->condition = $oProduct["Product"]["condition"];;
             $mProduct->show_price = 1;
             $mProduct->indexed = 0;
             $mProduct->visibility = "both";
@@ -116,6 +120,7 @@ class ProductController extends Controller
             $mProductLang->name = $oProductLang["name"];
             $mProductLang->available_now = "";
             $mProductLang->available_later = "";
+            //$mProdcutLang->inst_message = $oProductLang["inst_message"];
             $mProductLang->save();
 
             //Grabar CategoryProduct
@@ -173,7 +178,30 @@ class ProductController extends Controller
                     $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
                     $mProductItemCaracteristica->save();
                 }
+            }
 
+            //Grabar Modelo y Modelo Producto
+            $oModelos = $oProduct["Product"]["ModelProduct"];
+            foreach($oModelos as $oModelo){
+                if(intval($oModelo["id_model"]) == 0){
+                    $mModels = new Models();
+                    $mModels->nombre = $oModelo["model"]["nombre"];
+                    $mModels->save();
+                    $oModelo["id_model"] = $mModels->id_model;
+                }
+                $mModelProduct = new ModelProduct();
+                $mModelProduct->id_model = $oModelo["id_model"];
+                $mModelProduct->id_product = $mProduct->id_product;
+                $mModelProduct->save();
+            }
+
+            //Grabar Categoria Cross
+            $oProductCrossCategorys = $oProduct["Product"]["ProductCrossCategory"];
+            foreach($oProductCrossCategorys as $oProductCrossCategory){
+                $mProductCrossCategory = new ProductCrossCategory();
+                $mProductCrossCategory->id_product =$mProduct->id_product; ;
+                $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
+                $mProductCrossCategory->save();
             }
             return response()->json($mProduct, 200);
         }catch(Exception $e)
