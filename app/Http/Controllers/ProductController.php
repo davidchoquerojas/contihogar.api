@@ -8,6 +8,9 @@ use App\Product;
 use App\ProductLang;
 use App\ProductEvent;
 use App\CategoryProduct;
+use App\ProductItem;
+use App\ProductItemLang;
+use App\ProductItemCaracteristica;
 
 class ProductController extends Controller
 {
@@ -43,6 +46,7 @@ class ProductController extends Controller
         try{
             // Grabar Productos
             $oProduct = $request->all();
+
             $mProduct = new Product();
             $mProduct->id_supplier = $oProduct["Product"]["id_supplier"];
             $mProduct->id_manufacturer = $oProduct["Product"]["id_manufacturer"];
@@ -62,7 +66,7 @@ class ProductController extends Controller
             $mProduct->unity = null;
             $mProduct->unit_price_ratio = 0;
             $mProduct->additional_shipping_cost = 0;
-            $mProduct->reference = 0;
+            $mProduct->reference = $oProduct["Product"]["reference"];
             $mProduct->supplier_reference = null;
             $mProduct->location = null;
             $mProduct->width = 0;
@@ -140,6 +144,37 @@ class ProductController extends Controller
             $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
             $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
             $mProductEvent->save();
+
+            //Agregar Product Item
+            $oProductItems = $oProduct["Product"]["ProductItem"];
+            foreach($oProductItems as $key=>$ProductItem){
+                $mProdcutItem = new ProductItem();
+                $mProdcutItem->id_product = $mProduct->id_product;
+                $mProdcutItem->cantidad = $ProductItem["cantidad"];
+                $mProdcutItem->ancho = $ProductItem["ancho"];
+                $mProdcutItem->alto = $ProductItem["alto"];
+                $mProdcutItem->profundidad = $ProductItem["profundidad"];
+                $mProdcutItem->peso = $ProductItem["peso"];
+                $mProdcutItem->save();
+
+                //Grabar ProductItemsLang
+                $oProductItemLang = $ProductItem["ProductItemLang"];
+                $mProdcutItemLang = new ProductItemlang();
+                $mProdcutItemLang->id_product_item = $mProdcutItem->id_product_item;
+                $mProdcutItemLang->nombre = $oProductItemLang["nombre"];
+                $mProdcutItemLang->descripcion = "";
+                $mProdcutItemLang->save();
+                //Grabando ProductItemCaracteristica
+                $oProductItemCaracteristicas = $ProductItem["ProductItemCaracteristica"];
+                foreach($oProductItemCaracteristicas as $oProductItemCaracteristica){
+                    $mProductItemCaracteristica = new ProductItemCaracteristica();
+                    $mProductItemCaracteristica->id_product_item = $mProdcutItem->id_product_item;
+                    $mProductItemCaracteristica->nombre = $oProductItemCaracteristica["nombre"];
+                    $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
+                    $mProductItemCaracteristica->save();
+                }
+
+            }
             return response()->json($mProduct, 200);
         }catch(Exception $e)
         {
