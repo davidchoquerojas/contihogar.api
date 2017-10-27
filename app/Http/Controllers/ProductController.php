@@ -242,6 +242,10 @@ class ProductController extends Controller
             $oProduct["ProductItem"][$key]["ProductItemLang"] = ProductItemLang::get()->where('id_product_item','=',$oProductItem["id_product_item"])->first();
         }
         $oProduct["ModelProduct"] = ModelProduct::get()->where('id_product','=',$oProduct->id_product);
+        foreach($oProduct["ModelProduct"] as $key=>$oModelProduct){
+            $oProduct["ModelProduct"][$key]["model"] = Models::get()->where('id_model','=',$oModelProduct["id_model"])->first();
+        }
+
         $oProduct["ProductCrossCategory"] = ProductCrossCategory::get()->where('id_product','=',$oProduct->id_product);
         foreach($oProduct["ProductCrossCategory"] as $key=>$oProductCrossCategory){
             $oProduct["ProductCrossCategory"][$key]["Category"] = Category::with("CategoryLang")->where('id_category','=',$oProductCrossCategory["id_categoria"])->first();
