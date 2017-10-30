@@ -9,7 +9,7 @@ use App\ProductLang;
 use App\ProductEvent;
 use App\CategoryProduct;
 use App\ProductItem;
-use App\ProductItemLang;
+use App\ProductItemShipping;
 use App\ProductItemCaracteristica;
 
 use App\Models;
@@ -19,6 +19,8 @@ use App\Category;
 
 class ProductController extends Controller
 {
+    public $id_lang = 2;
+    public $id_shop = 1;
     /**
      * Display a listing of the resource.
      *
@@ -121,7 +123,7 @@ class ProductController extends Controller
             $mProductLang->name = $oProductLang["name"];
             $mProductLang->available_now = "";
             $mProductLang->available_later = "";
-            $mProdcutLang->inst_message = $oProductLang["inst_message"];
+            $mProductLang->inst_message = $oProductLang["inst_message"];
             $mProductLang->save();
 
             //Grabar CategoryProduct
@@ -153,58 +155,14 @@ class ProductController extends Controller
 
             //Agregar Product Item
             $oProductItems = $oProduct["Product"]["ProductItem"];
-            foreach($oProductItems as $key=>$ProductItem){
-                $mProdcutItem = new ProductItem();
-                $mProdcutItem->id_product = $mProduct->id_product;
-                $mProdcutItem->cantidad = $ProductItem["cantidad"];
-                $mProdcutItem->ancho = $ProductItem["ancho"];
-                $mProdcutItem->alto = $ProductItem["alto"];
-                $mProdcutItem->profundidad = $ProductItem["profundidad"];
-                $mProdcutItem->peso = $ProductItem["peso"];
-                $mProdcutItem->save();
-
-                //Grabar ProductItemsLang
-                $oProductItemLang = $ProductItem["ProductItemLang"];
-                $mProdcutItemLang = new ProductItemlang();
-                $mProdcutItemLang->id_product_item = $mProdcutItem->id_product_item;
-                $mProdcutItemLang->nombre = $oProductItemLang["nombre"];
-                $mProdcutItemLang->descripcion = "";
-                $mProdcutItemLang->save();
-                //Grabando ProductItemCaracteristica
-                $oProductItemCaracteristicas = $ProductItem["ProductItemCaracteristica"];
-                foreach($oProductItemCaracteristicas as $oProductItemCaracteristica){
-                    $mProductItemCaracteristica = new ProductItemCaracteristica();
-                    $mProductItemCaracteristica->id_product_item = $mProdcutItem->id_product_item;
-                    $mProductItemCaracteristica->nombre = $oProductItemCaracteristica["nombre"];
-                    $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
-                    $mProductItemCaracteristica->campo = $oProductItemCaracteristica["campo"];
-                    $mProductItemCaracteristica->save();
-                }
-            }
-
+            $this->grabarProductItem($oProductItems,$mProduct->id_product,true);
             //Grabar Modelo y Modelo Producto
             $oModelos = $oProduct["Product"]["ModelProduct"];
-            foreach($oModelos as $oModelo){
-                if(intval($oModelo["id_model"]) == 0){
-                    $mModels = new Models();
-                    $mModels->nombre = $oModelo["model"]["nombre"];
-                    $mModels->save();
-                    $oModelo["id_model"] = $mModels->id_model;
-                }
-                $mModelProduct = new ModelProduct();
-                $mModelProduct->id_model = $oModelo["id_model"];
-                $mModelProduct->id_product = $mProduct->id_product;
-                $mModelProduct->save();
-            }
-
+            $this->grabarProductModel($oModelos,$mProduct->id_product,true);
             //Grabar Categoria Cross
             $oProductCrossCategorys = $oProduct["Product"]["ProductCrossCategory"];
-            foreach($oProductCrossCategorys as $oProductCrossCategory){
-                $mProductCrossCategory = new ProductCrossCategory();
-                $mProductCrossCategory->id_product =$mProduct->id_product; ;
-                $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
-                $mProductCrossCategory->save();
-            }
+            $this->grabarProductCrossCategory($oProductCrossCategorys,$id_product,true);
+
             return response()->json($mProduct, 200);
         }catch(Exception $e)
         {
@@ -239,7 +197,7 @@ class ProductController extends Controller
         $oProduct["ProductItem"] = ProductItem::get()->where('id_product','=',$oProduct->id_product);
         foreach($oProduct["ProductItem"] as $key=>$oProductItem){
             $oProduct["ProductItem"][$key]["ProductItemCaracteristica"] = ProductItemCaracteristica::get()->where('id_product_item','=',$oProductItem["id_product_item"]);
-            $oProduct["ProductItem"][$key]["ProductItemLang"] = ProductItemLang::get()->where('id_product_item','=',$oProductItem["id_product_item"])->first();
+            $oProduct["ProductItem"][$key]["ProductItemShipping"] = ProductItemShipping::get()->where('id_product_item','=',$oProductItem["id_product_item"]);
         }
         $oProduct["ModelProduct"] = ModelProduct::get()->where('id_product','=',$oProduct->id_product);
         foreach($oProduct["ModelProduct"] as $key=>$oModelProduct){
@@ -266,19 +224,25 @@ class ProductController extends Controller
     {
         //
         //Actualizar Producto
-        $oProduct = $request::all();
-
-        $mProduct = Product::fin($id);
+        $oProduct = $request;
+        $id_product = $id;
+        
+        $mProduct = Product::find($id_product);
         $mProduct->id_supplier = $oProduct["id_supplier"];
         $mProduct->id_manufacturer = $oProduct["id_manufacturer"];
         $mProduct->quantity = $oProduct["quantity"];
         $mProduct->condition = $oProduct["condition"];
         $mProduct->reference = $oProduct["reference"];
         $mProduct->save();
+        
 
         //Actualizar ProductLang
         $oProductLang = $oProduct["ProductLang"];
-        $mProductLang = ProductLang::get()->where('id_product','=',$id)->first();
+        ProductLang::where('id_product', '=', $id_product)->delete();
+        $mProductLang = new ProductLang();
+        $mProductLang->id_product = $id_product;
+        $mProductLang->id_shop = $this->id_lang;
+        $mProductLang->id_lang = $this->id_shop;
         $mProductLang->description = $oProductLang["description"];
         $mProductLang->description_short = $oProductLang["description_short"];
         $mProductLang->link_rewrite = $oProductLang["link_rewrite"];
@@ -286,24 +250,23 @@ class ProductController extends Controller
         $mProductLang->meta_keywords = $oProductLang["meta_keywords"];
         $mProductLang->meta_title = $oProductLang["meta_title"];
         $mProductLang->name = $oProductLang["name"];
-        $mProdcutLang->inst_message = $oProductLang["inst_message"];
-        $mProdcutLang->save();
+        $mProductLang->inst_message = $oProductLang["inst_message"];
+        $mProductLang->save();
 
         //Actuaizar Category Product
-        $listCategoryProduct = $oProduct["CategoryProduct"];
-        CategoryProduct::where('id_product', '=', $id)->delete();
+        /*$listCategoryProduct = $oProduct["CategoryProduct"];
+        CategoryProduct::where('id_product', '=', $id_product)->delete();
         foreach($listCategoryProduct as $oCategoryProduct){
             $mCategoryProduct = new CategoryProduct();
             $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
-            $mCategoryProduct->id_product =  $mProduct->id_product;
+            $mCategoryProduct->id_product =  $id_product;
             $mCategoryProduct->position = 0;
             $mCategoryProduct->save();
-        }
+        }*/
 
         //Actualizar Product Event
         $oProductEvent = $oProduct["ProductEvent"];
         $mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
-        $mProductEvent->id_product = $mProduct->id_product;;
         $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
         $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
         $mProductEvent->price_impact = $oProductEvent["price_impact"];
@@ -316,56 +279,19 @@ class ProductController extends Controller
         $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
         $mProductEvent->save();
 
+
         //Actualiza Product Item
         $oProductItems = $oProduct["ProductItem"];
-        foreach($oProductItems as $key=>$ProductItem){
-            $mProdcutItem = ProductItem::find($ProductItem["id_product_item"]);
-            $mProdcutItem->id_product = $mProduct->id_product;
-            $mProdcutItem->cantidad = $ProductItem["cantidad"];
-            $mProdcutItem->ancho = $ProductItem["ancho"];
-            $mProdcutItem->alto = $ProductItem["alto"];
-            $mProdcutItem->profundidad = $ProductItem["profundidad"];
-            $mProdcutItem->peso = $ProductItem["peso"];
-            $mProdcutItem->save();
-
-            //Grabar ProductItemsLang
-            $oProductItemLang = $ProductItem["ProductItemLang"];
-            $mProdcutItemLang = ProductItemlang::get()->where('id_product_item','=',$ProductItem["id_product_item"])->first();
-            $mProdcutItemLang->id_product_item = $mProdcutItem->id_product_item;
-            $mProdcutItemLang->nombre = $oProductItemLang["nombre"];
-            $mProdcutItemLang->descripcion = "";
-            $mProdcutItemLang->save();
-            //Grabando ProductItemCaracteristica
-            $oProductItemCaracteristicas = $ProductItem["ProductItemCaracteristica"];
-            CategoryProduct::where('id_product_item', '=', $ProductItem["id_product_item"])->delete();
-            foreach($oProductItemCaracteristicas as $oProductItemCaracteristica){
-                $mProductItemCaracteristica = new ProductItemCaracteristica();
-                $mProductItemCaracteristica->id_product_item = $mProdcutItem->id_product_item;
-                $mProductItemCaracteristica->nombre = $oProductItemCaracteristica["nombre"];
-                $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
-                $mProductItemCaracteristica->campo = $oProductItemCaracteristica["campo"];
-                $mProductItemCaracteristica->save();
-            }
-        }
+        $this->grabarProductItem($oProductItems,$id_product,false);
 
         //Actualizar Model Product
         $oModelos = $oProduct["ModelProduct"];
-        foreach($oModelos as $oModelo){
-            $mModelProduct = ModelProduct::find($oModelo["id_model"]);
-            $mModelProduct->id_model = $oModelo["id_model"];
-            $mModelProduct->id_product = $mProduct->id_product;
-            $mModelProduct->save();
-        }
+        $this->grabarProductModel($oModelos,$id_product,false);
 
         //Grabar Categoria Cross
         $oProductCrossCategorys = $oProduct["ProductCrossCategory"];
-        ProductCrossCategory::where('id_product', '=', $id)->delete();
-        foreach($oProductCrossCategorys as $oProductCrossCategory){
-            $mProductCrossCategory = new ProductCrossCategory();
-            $mProductCrossCategory->id_product =$mProduct->id_product; ;
-            $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
-            $mProductCrossCategory->save();
-        }
+        $this->grabarProductCrossCategory($oProductCrossCategorys,$id_product,false);
+        
         return response()->json($id, 200);
     }
 
@@ -378,5 +304,102 @@ class ProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+    /**
+     * inserta o actualiza los productItems
+     * 
+     * @param ProductItems,id_product,isNew
+     * @return "void 
+     */
+    public function grabarProductItem($oProductItems,$id_product,$isNew)
+    {
+        foreach($oProductItems as $key=>$ProductItem){
+            $id_product_item = 0;
+            if($isNew){
+                $mProdcutItem = new ProductItem();
+                $mProdcutItem->id_product = $id_product;
+                $mProdcutItem->nombre = $ProductItem["nombre"];
+                $mProdcutItem->cantidad = $ProductItem["cantidad"];
+                $mProdcutItem->descripcion = "";
+                $mProdcutItem->save();
+                $id_product_item = $mProdcutItem->id_product_item;
+            }else{
+                $mProdcutItem = ProductItem::find($ProductItem["id_product_item"]);
+                $mProdcutItem->nombre = $ProductItem["nombre"];
+                $mProdcutItem->cantidad = $ProductItem["cantidad"];
+                $mProdcutItem->save();
+                $id_product_item = $mProdcutItem->id_product_item;
+            }
+
+            //Grabando ProductItemCaracteristica
+            if(!$isNew){
+                ProductItemCaracteristica::where('id_product_item', '=', $id_product_item)->delete();
+            }
+            $oProductItemCaracteristicas = $ProductItem["ProductItemCaracteristica"];
+            foreach($oProductItemCaracteristicas as $oProductItemCaracteristica){
+                $mProductItemCaracteristica = new ProductItemCaracteristica();
+                $mProductItemCaracteristica->id_product_item = $id_product_item;
+                $mProductItemCaracteristica->nombre = $oProductItemCaracteristica["nombre"];
+                $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
+                $mProductItemCaracteristica->campo = $oProductItemCaracteristica["campo"];
+                $mProductItemCaracteristica->save();
+            }
+
+            //Grabando ProductItemShipping
+            if(!$isNew){
+                ProductItemShipping::where('id_product_item', '=', $id_product_item)->delete();
+            }
+            $oProductItemShippings = $ProductItem["ProductItemShipping"];
+            foreach($oProductItemShippings as $oProductItemShipping){
+                $mProductItemShipping = new ProductItemShipping();
+                $mProductItemShipping->id_product_item = $id_product_item;
+                $mProductItemShipping->ancho = $oProductItemShipping["ancho"];
+                $mProductItemShipping->alto = $oProductItemShipping["alto"];
+                $mProductItemShipping->profundidad = $oProductItemShipping["profundidad"];
+                $mProductItemShipping->peso = $oProductItemShipping["peso"];
+                $mProductItemShipping->save();
+            }
+        }
+    }
+    /**
+     * Inserta o actualiza los ProductModel
+     * 
+     * @param Models,id_product,isNew
+     * @return "void"
+     */
+    public function grabarProductModel($oModelos,$id_product,$isNew){
+
+        if(!$isNew){
+            CategoryProduct::where('id_product', '=', $id_product)->delete();
+        }
+        foreach($oModelos as $oModelo){
+            if(intval($oModelo["id_model"]) == 0){
+                $mModels = new Models();
+                $mModels->nombre = $oModelo["model"]["nombre"];
+                $mModels->save();
+                $oModelo["id_model"] = $mModels->id_model;
+            }
+            $mModelProduct = new ModelProduct();
+            $mModelProduct->id_model = $oModelo["id_model"];
+            $mModelProduct->id_product = $id_product;
+            $mModelProduct->save();
+        }
+    }
+    /**
+     * Inserta o actualiza los ProductCrossCategory
+     * 
+     * @param App\ProductCrossCategory $oProductCrossCategorys,int $id_product, boolean $isNew
+     * @return "void"
+     */
+    public function grabarProductCrossCategory($oProductCrossCategorys,$id_product,$isNew){
+        if(!$isNew){
+            ProductCrossCategory::where('id_product', '=', $id_product)->delete();
+        }
+        foreach($oProductCrossCategorys as $oProductCrossCategory){
+            $mProductCrossCategory = new ProductCrossCategory();
+            $mProductCrossCategory->id_product =$mProduct->id_product; ;
+            $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
+            $mProductCrossCategory->save();
+        }
     }
 }

@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProductItemLang extends Model
+class ProductItemShipping extends Model
 {
     //
-    protected $table = 'contihogar_product_item_lang';
+    protected $table = 'contihogar_product_item_shipping';
     public $timestamps = false;
 }

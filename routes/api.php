@@ -33,6 +33,7 @@ Route::resource('supplier','SupplierController');
 Route::resource("manufacturer",'ManufacturerController');
 
 Route::resource('category', 'CategoryController');
+Route::post('category/store', 'CategoryController@store');
 
 Route::resource('product', 'ProductController');
 Route::post('product/store','ProductController@store');

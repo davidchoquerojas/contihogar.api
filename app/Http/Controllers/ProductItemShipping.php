@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Category;
 
-class CategoryController extends Controller
+class ProductItemShipping extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,9 +14,6 @@ class CategoryController extends Controller
     public function index()
     {
         //
-        $oCategory = Category::with('CategoryLang')->where('level_depth','>','0')->orderBy('level_depth', 'asc')->get();
-
-        return response()->json($oCategory,200);
     }
 
     /**
@@ -39,7 +35,6 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         //
-        return response()->json($request, 200);
     }
 
     /**
