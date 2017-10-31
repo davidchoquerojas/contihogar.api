@@ -110,31 +110,11 @@ class ProductController extends Controller
 
             //Grabar Product_lang
             $oProductLang =  $oProduct["Product"]["ProductLang"];
-            $mProductLang = new ProductLang();
-            $mProductLang->id_product = $mProduct->id_product;
-            $mProductLang->id_shop = 1;
-            $mProductLang->id_lang = 2;
-            $mProductLang->description = $oProductLang["description"];
-            $mProductLang->description_short = $oProductLang["description_short"];
-            $mProductLang->link_rewrite = $oProductLang["link_rewrite"];
-            $mProductLang->meta_description = $oProductLang["meta_description"];
-            $mProductLang->meta_keywords = $oProductLang["meta_keywords"];
-            $mProductLang->meta_title = $oProductLang["meta_title"];
-            $mProductLang->name = $oProductLang["name"];
-            $mProductLang->available_now = "";
-            $mProductLang->available_later = "";
-            $mProductLang->inst_message = $oProductLang["inst_message"];
-            $mProductLang->save();
+            $this->grabarProductLang($oProductLang,$mProduct->id_product,true);
 
             //Grabar CategoryProduct
             $listCategoryProduct = $oProduct["Product"]["CategoryProduct"];
-            foreach($listCategoryProduct as $oCategoryProduct){
-                $mCategoryProduct = new CategoryProduct();
-                $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
-                $mCategoryProduct->id_product =  $mProduct->id_product;
-                $mCategoryProduct->position = 0;
-                $mCategoryProduct->save();
-            }
+            $this->grabarProductCategory($listCategoryProduct,$id_product,true);
 
             //Grabar ProductEvent
             $oProductEvent = $oProduct["Product"]["ProductEvent"];
@@ -238,31 +218,11 @@ class ProductController extends Controller
 
         //Actualizar ProductLang
         $oProductLang = $oProduct["ProductLang"];
-        ProductLang::where('id_product', '=', $id_product)->delete();
-        $mProductLang = new ProductLang();
-        $mProductLang->id_product = $id_product;
-        $mProductLang->id_shop = $this->id_lang;
-        $mProductLang->id_lang = $this->id_shop;
-        $mProductLang->description = $oProductLang["description"];
-        $mProductLang->description_short = $oProductLang["description_short"];
-        $mProductLang->link_rewrite = $oProductLang["link_rewrite"];
-        $mProductLang->meta_description = $oProductLang["meta_description"];
-        $mProductLang->meta_keywords = $oProductLang["meta_keywords"];
-        $mProductLang->meta_title = $oProductLang["meta_title"];
-        $mProductLang->name = $oProductLang["name"];
-        $mProductLang->inst_message = $oProductLang["inst_message"];
-        $mProductLang->save();
+        $this->grabarProductLang($oProductLang,$id_product,false);
 
         //Actuaizar Category Product
-        /*$listCategoryProduct = $oProduct["CategoryProduct"];
-        CategoryProduct::where('id_product', '=', $id_product)->delete();
-        foreach($listCategoryProduct as $oCategoryProduct){
-            $mCategoryProduct = new CategoryProduct();
-            $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
-            $mCategoryProduct->id_product =  $id_product;
-            $mCategoryProduct->position = 0;
-            $mCategoryProduct->save();
-        }*/
+        $listCategoryProduct = $oProduct["CategoryProduct"];
+        $this->grabarProductCategory($listCategoryProduct,$id_product,false);
 
         //Actualizar Product Event
         $oProductEvent = $oProduct["ProductEvent"];
@@ -308,7 +268,9 @@ class ProductController extends Controller
     /**
      * inserta o actualiza los productItems
      * 
-     * @param ProductItems,id_product,isNew
+     * @param App\ProductItem $oProductItems
+     * @param int $id_product
+     * @param boolean $isNew
      * @return "void 
      */
     public function grabarProductItem($oProductItems,$id_product,$isNew)
@@ -364,7 +326,9 @@ class ProductController extends Controller
     /**
      * Inserta o actualiza los ProductModel
      * 
-     * @param Models,id_product,isNew
+     * @param App\ModelProduct oModelos
+     * @param int $id_product
+     * @param boolean isNew
      * @return "void"
      */
     public function grabarProductModel($oModelos,$id_product,$isNew){
@@ -388,7 +352,9 @@ class ProductController extends Controller
     /**
      * Inserta o actualiza los ProductCrossCategory
      * 
-     * @param App\ProductCrossCategory $oProductCrossCategorys,int $id_product, boolean $isNew
+     * @param App\ProductCrossCategory $oProductCrossCategorys,
+     * @param int $id_product, 
+     * @param boolean $isNew
      * @return "void"
      */
     public function grabarProductCrossCategory($oProductCrossCategorys,$id_product,$isNew){
@@ -400,6 +366,55 @@ class ProductController extends Controller
             $mProductCrossCategory->id_product =$mProduct->id_product; ;
             $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
             $mProductCrossCategory->save();
+        }
+    }
+
+    /**
+     * Inserta o actualiza ProductLang 
+     * 
+     * @param App\ProductLang $oProductLang,
+     * @param int $id_product, 
+     * @param bool $isNew
+     * @return "void"
+     */
+    public function grabarProductLang($oProductLang,$id_product,$isNew){
+        if(!$isNew){
+            ProductLang::where('id_product', '=', $id_product)->delete();
+        }
+        $mProductLang = new ProductLang();
+        $mProductLang->id_product = $id_product;
+        $mProductLang->id_shop = $this->id_shop;
+        $mProductLang->id_lang = $this->id_lang;
+        $mProductLang->description = $oProductLang["description"];
+        $mProductLang->description_short = $oProductLang["description_short"];
+        $mProductLang->link_rewrite = $oProductLang["link_rewrite"];
+        $mProductLang->meta_description = $oProductLang["meta_description"];
+        $mProductLang->meta_keywords = $oProductLang["meta_keywords"];
+        $mProductLang->meta_title = $oProductLang["meta_title"];
+        $mProductLang->name = $oProductLang["name"];
+        $mProductLang->available_now = "";
+        $mProductLang->available_later = "";
+        $mProductLang->inst_message = $oProductLang["inst_message"];
+    }
+
+    /**
+     * Inserta o actualiza ProductCategory
+     * 
+     * @param App\CategoryProduct $listCategoryProduct
+     * @param int $id_product 
+     * @param bool $isNew
+     * @return void
+     */
+    public function grabarProductCategory($listCategoryProduct,$id_product,$isNew){
+        if(!$isNew) {
+            CategoryProduct::where('id_product', '=', $id_product)->delete();
+        }
+        foreach($listCategoryProduct as $oCategoryProduct){
+            $mCategoryProduct = new CategoryProduct();
+            $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
+            $mCategoryProduct->id_product =  $id_product;
+            $mCategoryProduct->position = 0;
+            $mCategoryProduct->save();
         }
     }
 }
