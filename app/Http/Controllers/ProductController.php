@@ -171,6 +171,8 @@ class ProductController extends Controller
     {
         //
         $oProduct = Product::find($id);
+        if($oProduct == NULL) return response()->json(array("NO DATA"), 200);
+        
         $oProduct["ProductLang"] = ProductLang::get()->where('id_product','=',$oProduct->id_product)->first();
         $oProduct["CategoryProduct"] = CategoryProduct::get()->where('id_product','=',$oProduct->id_product);
         $oProduct["ProductEvent"] = ProductEvent::get()->where('id_product','=',$oProduct->id_product)->first();

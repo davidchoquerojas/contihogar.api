@@ -1,5 +1,5 @@
 <?php
-namespace App\Libraries;
+namespace App\Library;
 use \Exception;
 /*
 * 2007-2013 PrestaShop
