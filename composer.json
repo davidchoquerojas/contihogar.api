@@ -18,10 +18,11 @@
     },
     "autoload": {
         "files":[
-            "mi_archivo_de_php"
+            "app/Library/PrestaShopWebservice.php"
         ],
         "classmap": [
-            "database"
+            "database",
+            "app/Library"
         ],
         "psr-4": {
             "App\\": "app/"

@@ -178,6 +178,10 @@ return [
         App\Providers\RouteServiceProvider::class,
 
         Barryvdh\Cors\ServiceProvider::class,
+        /**
+         * PresstaShop web service::class
+         */
+        //App\Libraries\PrestaShopWebservice::class
 
     ],
 
