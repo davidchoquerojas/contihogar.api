@@ -8,4 +8,5 @@ class Supplier extends Model
 {
     //
     protected $table = 'contihogar_supplier';
+    public $timestamps = false;
 }
