@@ -39,6 +39,8 @@ Route::post('product/store','ProductController@store');
 
 Route::resource('modelo', 'ModelController');
 
-
 Route::resource('image', 'ImageController');
 Route::post('image/store', 'ImageController@store');
+
+Route::resource('departament', 'DepartamentController');
+

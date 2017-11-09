@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Supplier;
+use Carbon\Carbon;
+
 
 class SupplierController extends Controller
 {
@@ -41,14 +43,15 @@ class SupplierController extends Controller
     {
         //
         try{
-
-            $oSupplier = $request::all();
+            
+            $oSupplier = $request;
             $mSupplier = new Supplier();
-            $mSupplier->name = $oSupplier["name"];
+            $mSupplier->name = $oSupplier["Address"]["company"];
             $mSupplier->date_add = Carbon::now();
             $mSupplier->date_upd = Carbon::now();
-            $mSupplier->active = $oSupplier["active"];
+            $mSupplier->active = $oSupplier["active"] == null?0:1;
             $mSupplier->save();
+            return response()->json($mSupplier, 200);
 
             $oSupplierLang = $oSupplier["SupplierLang"];
             $mSupplierLang = new SupplierLang();
