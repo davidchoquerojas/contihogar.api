@@ -1,6 +1,4 @@
-<?php
-     var_dump(csrf_token());
-?>
+
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
     <head>

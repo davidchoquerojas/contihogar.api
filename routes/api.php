@@ -33,6 +33,15 @@ Route::resource('supplier','SupplierController');
 Route::resource("manufacturer",'ManufacturerController');
 
 Route::resource('category', 'CategoryController');
+Route::get('categoryByParents/{id}','CategoryController@categoryByParents');
+
+Route::get('categoryByPalllkrents/{id}', function($id){
+    return Route::resource('categojjijijiiryByParents','CategoryController@categoryByParents');
+});
+
+Route::get('categoryByDepth', 'CategoryController@categoryByDepth');
+Route::post('category/store','CategoryController@store');
+
 
 Route::resource('product', 'ProductController');
 Route::post('product/store','ProductController@store');
