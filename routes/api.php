@@ -34,11 +34,6 @@ Route::resource("manufacturer",'ManufacturerController');
 
 Route::resource('category', 'CategoryController');
 Route::get('categoryByParents/{id}','CategoryController@categoryByParents');
-
-Route::get('categoryByPalllkrents/{id}', function($id){
-    return Route::resource('categojjijijiiryByParents','CategoryController@categoryByParents');
-});
-
 Route::get('categoryByDepth', 'CategoryController@categoryByDepth');
 Route::post('category/store','CategoryController@store');
 
@@ -52,4 +47,7 @@ Route::resource('image', 'ImageController');
 Route::post('image/store', 'ImageController@store');
 
 Route::resource('departament', 'DepartamentController');
+Route::get('province/{id_departament}', 'DepartamentController@getProvince');
+Route::get('district/{id_province}', 'DepartamentController@getDistrict');
+Route::get('zone/delivery','DepartamentController@getZoneDeliveryFree');
 

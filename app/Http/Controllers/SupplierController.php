@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Supplier;
+use App\SupplierLang;
+use App\Address;
 use Carbon\Carbon;
 
 
@@ -11,6 +13,10 @@ class SupplierController extends Controller
 {
     private $id_shop = 0;
     private $id_lang = 2;
+    private $id_country = 171;
+    private $id_state = 313;
+    private $postcode = 051;
+    private $city = "Lima";
     /**
      * Display a listing of the resource.
      *
@@ -50,8 +56,12 @@ class SupplierController extends Controller
             $mSupplier->date_add = Carbon::now();
             $mSupplier->date_upd = Carbon::now();
             $mSupplier->active = $oSupplier["active"] == null?0:1;
+            $mSupplier->invoice_type = $oSupplier["invoice_type"];
+            $mSupplier->shipping_type = $oSupplier["shipping_type"];
+            $mSupplier->bussines_model = $oSupplier["bussines_model"];
+            $mSupplier->payment_type = $oSupplier["payment_type"];
+            $mSupplier->total_days = $oSupplier["total_days"];
             $mSupplier->save();
-            return response()->json($mSupplier, 200);
 
             $oSupplierLang = $oSupplier["SupplierLang"];
             $mSupplierLang = new SupplierLang();
@@ -60,11 +70,15 @@ class SupplierController extends Controller
             $mSupplierLang->description = $oSupplierLang["description"];
             $mSupplierLang->meta_title = $oSupplierLang["meta_title"];
             $mSupplierLang->meta_keywords = $oSupplierLang["meta_keywords"];
-            $mSupplierLang->meta_description = $oSupplierLang["meta_description"];
+            //$mSupplierLang->meta_description = $oSupplierLang["meta_description"] == null?"":"";
             $mSupplierLang->save();
 
-            $mAddress = obtenerEntityAddress();
+            $oAddress = $oSupplier["Address"];
+            $oAddress["id_supplier"] = $mSupplier->id_supplier;
+            $mAddress = $this->obtenerEntityAddress($oAddress);
             $mAddress->save();
+
+            return response()->json($mAddress, 200);
 
             $oSupplierMaufacturers = $oSupplier["SupplierMaufacturer"];
             foreach($oSupplierMaufacturers as $oSupplierMaufacturer){
@@ -170,29 +184,29 @@ class SupplierController extends Controller
     }
     public function obtenerEntityAddress($oAddressEntity){
         $mAdress = new Address();
-        $mAdress->id_country = $oAddressEntity["id_country"];
-        $mAdress->id_state = $oAddressEntity["id_state"];
+        $mAdress->id_country = $this->id_country;
+        $mAdress->id_state = $this->id_state;
         $mAdress->id_distrito = $oAddressEntity["id_distrito"];
         $mAdress->id_provincia = $oAddressEntity["id_provincia"];
         $mAdress->id_customer = $oAddressEntity["id_customer"];
         $mAdress->id_manufacturer = $oAddressEntity["id_manufacturer"];
         $mAdress->id_supplier = $oAddressEntity["id_supplier"];
         $mAdress->id_warehouse = $oAddressEntity["id_warehouse"];
-        $mAdress->alias = $oAddressEntity["alias"];
+        $mAdress->alias = $oAddressEntity["lastname"];
         $mAdress->company = $oAddressEntity["company"];
         $mAdress->lastname = $oAddressEntity["lastname"];
-        $mAdress->firstname = $oAddressEntity["firstname"];
+        $mAdress->firstname = $oAddressEntity["lastname"];
         $mAdress->address1 = $oAddressEntity["address1"];
-        $mAdress->address2 = $oAddressEntity["address2"];
-        $mAdress->postcode = $oAddressEntity["postcode"];
-        $mAdress->city = $oAddressEntity["city"];
+        $mAdress->address2 = $oAddressEntity["address1"];
+        $mAdress->postcode = $this->postcode;
+        $mAdress->city = $this->city;
         $mAdress->other = $oAddressEntity["other"];
         $mAdress->phone = $oAddressEntity["phone"];
         $mAdress->phone_mobile = $oAddressEntity["phone_mobile"];
         $mAdress->vat_number = $oAddressEntity["vat_number"];
         $mAdress->dni = $oAddressEntity["dni"];
-        $mAdress->date_add = $oAddressEntity["date_add"];
-        $mAdress->date_upd = $oAddressEntity["date_upd"];
+        $mAdress->date_add = Carbon::now();
+        $mAdress->date_upd = Carbon::now();
         $mAdress->active = $oAddressEntity["active"];
         $mAdress->deleted = $oAddressEntity["deleted"];
         return $mAdress;
