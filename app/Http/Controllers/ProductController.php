@@ -17,10 +17,16 @@ use App\ModelProduct;
 use App\ProductCrossCategory;
 use App\Category;
 
+use App\Attribute;
+use App\ProductAttribute;
+use App\ProductAttributeCombination;
+use App\ProductAttributeImage;
+
 class ProductController extends Controller
 {
     public $id_lang = 2;
     public $id_shop = 1;
+    public $id_attribute_group = 3;
     /**
      * Display a listing of the resource.
      *
@@ -30,16 +36,6 @@ class ProductController extends Controller
     {
         $oProduct = Product::all();
         return response()->json($oProduct,200);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -418,5 +414,21 @@ class ProductController extends Controller
             $mCategoryProduct->position = 0;
             $mCategoryProduct->save();
         }
+    }
+
+    public function image(Request $request){
+        $oAttribute = $request;
+
+        $mAttribute = new Attribute();
+        $mAttribute->id_attribute_group = $this->id_attribute_group;
+        $mAttribute->color = $oAttribute["color"];
+        $mAttribute->position = 1;
+        $mAttribute->save();
+
+        $mProductAttribute = new ProductAttribute();
+
+        $mProductAttributeCombination = new ProductAttributeCombination();
+
+        $mProductAttributeImage = new ProductAttributeImage();
     }
 }
