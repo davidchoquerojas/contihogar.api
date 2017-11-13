@@ -40,6 +40,7 @@ Route::post('category/store','CategoryController@store');
 
 Route::resource('product', 'ProductController');
 Route::post('product/store','ProductController@store');
+Route::post('product/attribute','ProductController@attribute');
 
 Route::resource('modelo', 'ModelController');
 
