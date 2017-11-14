@@ -361,7 +361,7 @@ class ProductController extends Controller
         }
         foreach($oProductCrossCategorys as $oProductCrossCategory){
             $mProductCrossCategory = new ProductCrossCategory();
-            $mProductCrossCategory->id_product =$mProduct->id_product; ;
+            $mProductCrossCategory->id_product = $id_product;
             $mProductCrossCategory->id_categoria = $oProductCrossCategory["id_categoria"];
             $mProductCrossCategory->save();
         }
