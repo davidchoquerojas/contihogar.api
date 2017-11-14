@@ -137,7 +137,7 @@ class ProductController extends Controller
             $this->grabarProductModel($oModelos,$mProduct->id_product,true);
             //Grabar Categoria Cross
             $oProductCrossCategorys = $oProduct["Product"]["ProductCrossCategory"];
-            $this->grabarProductCrossCategory($oProductCrossCategorys,$id_product,true);
+            $this->grabarProductCrossCategory($oProductCrossCategorys,$mProduct->id_product,true);
 
             return response()->json($mProduct, 200);
         }catch(Exception $e)
