@@ -393,6 +393,7 @@ class ProductController extends Controller
         $mProductLang->available_now = "";
         $mProductLang->available_later = "";
         $mProductLang->inst_message = $oProductLang["inst_message"];
+        $mProductLang->save();
     }
 
     /**
