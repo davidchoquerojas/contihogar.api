@@ -110,7 +110,7 @@ class ProductController extends Controller
 
             //Grabar CategoryProduct
             $listCategoryProduct = $oProduct["Product"]["CategoryProduct"];
-            $this->grabarProductCategory($listCategoryProduct,$id_product,true);
+            $this->grabarProductCategory($listCategoryProduct,$mProduct->id_product,true);
 
             //Grabar ProductEvent
             $oProductEvent = $oProduct["Product"]["ProductEvent"];

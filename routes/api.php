@@ -41,6 +41,7 @@ Route::post('category/store','CategoryController@store');
 Route::resource('product', 'ProductController');
 Route::post('product/store','ProductController@store');
 Route::post('product/attribute','ProductController@attribute');
+Route::get('product-attribute','ProductController@productAttribute');
 
 Route::resource('modelo', 'ModelController');
 
