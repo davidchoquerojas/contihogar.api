@@ -184,7 +184,7 @@ class ProductController extends Controller
 
         $oProduct["ProductCrossCategory"] = ProductCrossCategory::get()->where('id_product','=',$oProduct->id_product);
         foreach($oProduct["ProductCrossCategory"] as $key=>$oProductCrossCategory){
-            $oProduct["ProductCrossCategory"][$key]["Category"] = Category::with("CategoryLang")->where('id_category','=',$oProductCrossCategory["id_categoria"])->first();
+            $oProduct["ProductCrossCategory"][$key]["Category"] = Category::with("CategoryLang")->where('id_category','=',$oProductCrossCategory["id_category"])->first();
         }
         
         return response()->json($oProduct, 200);
