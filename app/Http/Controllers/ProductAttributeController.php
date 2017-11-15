@@ -13,6 +13,11 @@ use DB;
 class ProductAttributeController extends Controller
 {
     private $id_attribute_group = 3;
+    private $pressta_shop_url;
+    private $img_prefix_ext = ".jpg";
+    public function __construct(){
+        $this->pressta_shop_url = \Config::get('constants.pressta_shop.url');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -100,6 +105,7 @@ class ProductAttributeController extends Controller
             $oProductImages = ProductAttributeImage::get()->where('id_product_attribute','=',$oAttribute->id_product_attribute);
             $oListProductImages = array();
             foreach($oProductImages as $oProductImage){
+                $oProductImage["src"] = $this->pressta_shop_url."/img/p/".$this->crearRutaImage($oProductImage["id_image"])."/".$oProductImage["id_image"].$this->img_prefix_ext;
                 array_push($oListProductImages,$oProductImage);
             }
             $oAttributes[$key]->Images = $oListProductImages;
@@ -142,5 +148,16 @@ class ProductAttributeController extends Controller
     public function destroy($id)
     {
         //
+    }
+    public function crearRutaImage($id_image){
+        $strUrl = "";
+        $iLenght = strlen($id_image);
+        for($_i = 0;$_i < $iLenght ;$_i++){
+            if($iLenght == $_i+1)
+                $strUrl.= substr($id_image,$_i,1);
+            else
+                $strUrl.= substr($id_image,$_i,1)."/";
+        }
+        return $strUrl;
     }
 }
