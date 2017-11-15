@@ -141,5 +141,15 @@ class ImageController extends Controller
     public function destroy($id)
     {
         //
+        try{
+            $id_image = $id;
+            ProductImage::where('id_image','=',$id_image)->delete();
+            Image::destroy($id_image);
+
+            return response()->json(array("res"=>true),200);
+        }catch(Exception $ex){
+            return response()->json($ex, 500);
+        }
+        
     }
 }
