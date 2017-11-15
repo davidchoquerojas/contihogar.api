@@ -47,6 +47,9 @@ class ProductAttributeController extends Controller
             $mAttribute = Attribute::find($oAttribute["id_attribute"]);
             $mAttribute->color = $oAttribute["color"];
             $mAttribute->save();
+            
+            return response()->json($mAttribute, 200);
+            
         }else{
             $mAttribute = new Attribute();
             $mAttribute->id_attribute_group = $this->id_attribute_group;
@@ -70,7 +73,9 @@ class ProductAttributeController extends Controller
             $mProductAttributeCombination = new ProductAttributeCombination();
             $mProductAttributeCombination->id_attribute = $mAttribute->id_attribute;
             $mProductAttributeCombination->id_product_attribute = $mProductAttribute->id_product_attribute;
-            $mProductAttributeCombination->save();    
+            $mProductAttributeCombination->save();
+
+            return response()->json($mAttribute, 200);
         }
     }
 
