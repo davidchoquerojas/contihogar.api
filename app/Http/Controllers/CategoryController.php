@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\CategoryLang;
 use Illuminate\Http\Request;
 use App\Category;
 use App\Library;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 class CategoryController extends Controller
 {
-    private $idlang=2;
+    private $id_lang=2;
+    private $id_shop=1;
     /**
      * Display a listing of the resource.
      *
@@ -50,7 +53,23 @@ class CategoryController extends Controller
         $mCategory->nleft = 0;
         $mCategory->nright = 0;
         $mCategory->active = $eCategory["active"];
+        $mCategory->date_add = Carbon::now();
+        $mCategory->date_upd = Carbon::now();
         $mCategory->save();
+
+        $oCategoryLang= $eCategory['CategoryLang'];
+        $mCategoryLang = new CategoryLang();
+        $mCategoryLang->id_category =  $mCategory->id_category;
+        $mCategoryLang->id_shop = $this->id_shop;
+        $mCategoryLang->id_lang = $this->id_lang;
+        $mCategoryLang->name = $oCategoryLang['name'];
+        $mCategoryLang->description = $oCategoryLang['description'];
+        $mCategoryLang->link_rewrite = $oCategoryLang['link_rewrite'];
+        $mCategoryLang->meta_title = $oCategoryLang['meta_title'];
+        $mCategoryLang->meta_keywords = $oCategoryLang['meta_keywords'];
+        $mCategoryLang->meta_description = $oCategoryLang['meta_description'];
+        $mCategoryLang->save();
+
         return response()->json($mCategory,200);
     }
 
@@ -99,17 +118,55 @@ class CategoryController extends Controller
         //
     }
 
-    public function categoryByParents($id_parent)
-
+    public function categoryByParents($id_category)
     {
-        $categoryByParents = DB::table('contihogar_category')
-            ->join('contihogar_category_lang', function ($join) {
-                $join->on('contihogar_category.id_category', '=', 'contihogar_category_lang.id_category');
-            })->where('contihogar_category_lang.id_lang', '=', $this->idlang)
-            ->where('contihogar_category.id_parent', '=', $id_parent)
-            ->get();
 
-        return response()->json($categoryByParents,200);
+//    {
+//        $categoryByParents = DB::table('contihogar_category')
+//            ->leftJoin('contihogar_category_lang', 'contihogar_category.id_category', '=','contihogar_category_lang.id_category')
+//            ->leftJoin('contihogar_category_group', 'contihogar_category.id_category', '=', 'contihogar_category_group.id_category')
+//            ->leftJoin('contihogar_category_shop', 'contihogar_category.id_category', '=', 'contihogar_category_shop.id_category')
+//            ->where('contihogar_category_lang.id_lang', '=', $this->idlang)
+//            ->where('contihogar_category.id_parent', '=', $id_parent)
+//            ->groupBy('contihogar_category.id_category','')
+//            ->orderBy('contihogar_category.id_category')
+//            ->get();
+//var_dump($categoryByParents);
+//        $categoryByParents = DB::table('contihogar_category')
+//            ->join('contihogar_category_lang', function ($join) {
+//                $join->on('contihogar_category.id_category', '=', 'contihogar_category_lang.id_category');
+//            })->where('contihogar_category_lang.id_lang', '=', $this->idlang)
+//            ->where('contihogar_category.id_parent', '=', $id_parent)
+//            ->get();
+
+//        $facturasCliente = DB::table('contihogar_category')
+//            ->leftJoin('contihogar_category_lang', 'contihogar_category.id_category', '=', 'contihogar_category_lang.id_category')
+//            ->leftJoin('item_facturables', 'facturas.id', '=', 'item_facturables.id_factura')
+//            ->select('clientes.*', 'facturas.id as id_factura', 'facturas.fecha', 'concepto')
+//            ->where('clientes.email', '=', 'miguel@desarrolloweb.com')
+//            ->get();
+//        echo "<br>";
+
+
+        $query = "SELECT    c.id_parent,
+                            c.id_category,
+                            CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(level_depth,1,''),2,'--'),3,'---'),4,'----'),cl.name) as name,
+                            cl.description,
+                            cl.link_rewrite,
+                            cs.position,
+                            level_depth
+                    FROM contihogar_category c
+                    LEFT JOIN contihogar_category_lang cl ON (c.id_category = cl.id_category AND id_lang = '1')
+                    LEFT JOIN contihogar_category_group cg ON (cg.id_category = c.id_category)
+                    LEFT JOIN contihogar_category_shop cs ON (c.id_category = cs.id_category )
+                    WHERE c.id_category <> :id_category
+                    GROUP BY c.id_parent,c.id_category,cl.name,cl.description,cl.link_rewrite, cs.position, level_depth
+                    ORDER BY cs.position ASC,c.id_parent ASC,level_depth ASC";
+
+        $results = DB::select( DB::raw($query), array('id_category' => $id_category));
+        //var_dump($results);
+
+        return response()->json($results,200);
     }
 
     public function categoryByDepth()
