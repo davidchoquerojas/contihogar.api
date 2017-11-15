@@ -26,6 +26,10 @@ Route::middleware('api')->post('/supplier/store', function (Request $request) {
     Route::resource('supplier','SupplierController@store');
 });*/
 
+
+Route::resource('productAttibute', 'ProductAttributeController');
+
+
 Route::post('supplier/store','SupplierController@store');
 Route::resource('supplier','SupplierController');
 
