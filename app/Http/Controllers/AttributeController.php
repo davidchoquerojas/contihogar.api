@@ -80,5 +80,16 @@ class AttributeController extends Controller
     public function destroy($id)
     {
         //
+        try{
+            $id_attribute = $id;
+            $oProductAttributeCombinations = ProductAttributeCombination::get()->where('id_attribute','=',$id_attribute);
+            foreach($oProductAttributeCombinations as $oProductAttributeCombination){
+                Attribute::destroy($oProductAttributeCombination["id_attribute"]);
+                ProductAttribute::destroy($oProductAttributeCombination["id_product_attribute"]);
+            }
+            return response()->json(array("res"=>true), 200);     
+        }catch(Exeption $ex){
+            return response()->json($ex, 200);     
+        }
     }
 }
