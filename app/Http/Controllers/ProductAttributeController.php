@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\ProductAttributeImage;
 use App\Attribute;
 use App\ProductAttribute;
+use App\ProductAttributeCombination;
 use DB;
 
 class ProductAttributeController extends Controller
