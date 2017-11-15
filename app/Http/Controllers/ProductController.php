@@ -17,16 +17,14 @@ use App\ModelProduct;
 use App\ProductCrossCategory;
 use App\Category;
 
-use App\Attribute;
-use App\ProductAttribute;
-use App\ProductAttributeCombination;
-use App\ProductAttributeImage;
+use App\ProductShop;
 
 class ProductController extends Controller
 {
     public $id_lang = 2;
     public $id_shop = 1;
     public $id_attribute_group = 3;
+    private $id_tax_rules_group = 1;
     /**
      * Display a listing of the resource.
      *
@@ -58,20 +56,14 @@ class ProductController extends Controller
             $mProduct->id_tax_rules_group = 1;
             $mProduct->on_sale = 1;
             $mProduct->online_only = 0;
-            $mProduct->ean13 = null;
-            $mProduct->isbn = null;
-            $mProduct->upc = null;
             $mProduct->ecotax = 0;
             $mProduct->quantity = $oProduct["Product"]["quantity"];
             $mProduct->minimal_quantity = 1;
             $mProduct->price = 0;
             $mProduct->wholesale_price = 0;
-            $mProduct->unity = null;
             $mProduct->unit_price_ratio = 0;
             $mProduct->additional_shipping_cost = 0;
             $mProduct->reference = $oProduct["Product"]["reference"];
-            $mProduct->supplier_reference = null;
-            $mProduct->location = null;
             $mProduct->width = 0;
             $mProduct->height = 0;
             $mProduct->depth = 0;
@@ -103,6 +95,14 @@ class ProductController extends Controller
             $mProduct->nuevo = 1;
 
             $mProduct->save();
+
+            $mProductShop = new ProductShop();
+            $mProductShop->id_product = $mProduct->id_product;
+            $mProductShop->id_shop = $this->id_shop;
+            $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
+            $mProductShop->date_add = Carbon::now();
+            $mProductShop->date_upd = Carbon::now();
+            $mProductShop->save();
 
             //Grabar Product_lang
             $oProductLang =  $oProduct["Product"]["ProductLang"];
