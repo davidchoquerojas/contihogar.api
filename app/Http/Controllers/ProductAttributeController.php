@@ -39,6 +39,36 @@ class ProductAttributeController extends Controller
     public function store(Request $request)
     {
         //
+        $oAttribute = $request["Attribute"];
+        if(intval($oAttribute["id_attribute"]) > 0){
+            $mAttribute = Attribute::find($oAttribute["id_attribute"]);
+            $mAttribute->color = $oAttribute["color"];
+            $mAttribute->save();
+        }else{
+            $mAttribute = new Attribute();
+            $mAttribute->id_attribute_group = $this->id_attribute_group;
+            $mAttribute->color = $oAttribute["color"];
+            $mAttribute->position++;
+            $mAttribute->save();
+
+            $oProductAttribute = $request["ProductAttribute"];
+            $mProductAttribute = new ProductAttribute();
+            $mProductAttribute->wholesale_price = $oProductAttribute["wholesale_price"];
+            $mProductAttribute->price = $oProductAttribute["price"]; 
+            $mProductAttribute->ecotax = $oProductAttribute["ecotax"]; 
+            $mProductAttribute->quantity = $oProductAttribute["quantity"]; 
+            $mProductAttribute->weight = $oProductAttribute["weight"]; 
+            $mProductAttribute->unit_price_impact = $oProductAttribute["unit_price_impact"]; 
+            $mProductAttribute->default_on = $oProductAttribute["default_on"]; 
+            $mProductAttribute->minimal_quantity = $oProductAttribute["minimal_quantity"]; 
+            $mProductAttribute->id_product = $oProductAttribute["id_product"];
+            $mProductAttribute->save();
+    
+            $mProductAttributeCombination = new ProductAttributeCombination();
+            $mProductAttributeCombination->id_attribute = $mAttribute->id_attribute;
+            $mProductAttributeCombination->id_product_attribute = $mProductAttribute->id_product_attribute;
+            $mProductAttributeCombination->save();    
+        }
     }
 
     /**

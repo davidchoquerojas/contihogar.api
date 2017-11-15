@@ -83,12 +83,15 @@ class ImageController extends Controller
     {
         try
         {
-            $webService = new \App\Library\PrestaShopWebservice($this->WebServiceUrl, $this->WebServiceKey, $this->WebServiceDebug);
-            $opt['resource'] = 'images/products/11';
+            //$webService = new \App\Library\PrestaShopWebservice($this->WebServiceUrl, $this->WebServiceKey, $this->WebServiceDebug);
+            //$opt['resource'] = 'images/products/11';
             //$xml = 
             //$resources = $xml->children();
+            //$webService->get($opt)
+
+            $response = array("res"=>10);
             
-            return response()->json($webService->get($opt), 200);
+            return response()->json($response, 200);
             
             //print_r($resources);
             /*foreach ($resources as $resource)

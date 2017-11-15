@@ -28,6 +28,7 @@ Route::middleware('api')->post('/supplier/store', function (Request $request) {
 
 
 Route::resource('productAttibute', 'ProductAttributeController');
+Route::post('productAttibute/store','ProductAttributeController@store');
 
 
 Route::post('supplier/store','SupplierController@store');
@@ -44,8 +45,6 @@ Route::post('category/store','CategoryController@store');
 
 Route::resource('product', 'ProductController');
 Route::post('product/store','ProductController@store');
-Route::post('product/attribute','ProductController@attribute');
-Route::get('product-attribute','ProductController@productAttribute');
 
 Route::resource('modelo', 'ModelController');
 
