@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\ProductAttributeCombination;
+use App\Attribute;
+use App\ProductAttribute;
+
 
 class AttributeController extends Controller
 {
