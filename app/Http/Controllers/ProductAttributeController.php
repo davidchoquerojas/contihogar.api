@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\ProductAttributeImage;
+use App\Attribute;
 use DB;
 
 class ProductAttributeController extends Controller
