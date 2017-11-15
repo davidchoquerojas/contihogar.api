@@ -31,6 +31,10 @@ Route::resource('productAttibute', 'ProductAttributeController');
 Route::post('productAttibute/store','ProductAttributeController@store');
 
 
+Route::resource('productAttributeImage', 'ProductAttributeImageController');
+
+
+
 Route::post('supplier/store','SupplierController@store');
 Route::resource('supplier','SupplierController');
 
