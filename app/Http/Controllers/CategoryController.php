@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\CategoryLang;
 use Illuminate\Http\Request;
-use App\Category;
-use App\Library;
 use Illuminate\Support\Facades\DB;
+
+use App\CategoryLang;
+use App\CategoryShop;
+use App\Category;
+use App\Group;
+use App\CategoryGroup;
+
+use App\Library;
+
 use Carbon\Carbon;
 
 
 class CategoryController extends Controller
 {
-    private $id_lang=2;
-    private $id_shop=1;
+    private $id_lang = 2;
+    private $id_shop = 1;
     /**
      * Display a listing of the resource.
      *
@@ -57,18 +63,22 @@ class CategoryController extends Controller
         $mCategory->date_upd = Carbon::now();
         $mCategory->save();
 
-        $oCategoryLang= $eCategory['CategoryLang'];
-        $mCategoryLang = new CategoryLang();
-        $mCategoryLang->id_category =  $mCategory->id_category;
-        $mCategoryLang->id_shop = $this->id_shop;
-        $mCategoryLang->id_lang = $this->id_lang;
-        $mCategoryLang->name = $oCategoryLang['name'];
-        $mCategoryLang->description = $oCategoryLang['description'];
-        $mCategoryLang->link_rewrite = $oCategoryLang['link_rewrite'];
-        $mCategoryLang->meta_title = $oCategoryLang['meta_title'];
-        $mCategoryLang->meta_keywords = $oCategoryLang['meta_keywords'];
-        $mCategoryLang->meta_description = $oCategoryLang['meta_description'];
-        $mCategoryLang->save();
+        $oCategoryLang = $eCategory['CategoryLang'];
+        $this->grabarCategoryLang($oCategoryLang,$mCategory->id_category,true);
+
+        $mCategoryShop = new CategoryShop();
+        $mCategoryShop->id_category = $mCategory->id_category;
+        $mCategoryShop->id_shop = $this->id_shop;
+        $mCategoryShop->position++;
+        $mCategoryShop->save();
+
+        $mGroups = Group::all();
+        foreach ($mGroups as $key => $oGroup) {
+            $mCategoryGroup = new CategoryGroup();
+            $mCategoryGroup->id_category = $mCategory->id_category;
+            $mCategoryGroup->id_group = $oGroup->id_group;
+            $mCategoryGroup->save();
+        }
 
         return response()->json($mCategory,200);
     }
@@ -82,6 +92,10 @@ class CategoryController extends Controller
     public function show($id)
     {
         //
+        $id_category = $id;
+        $oCategory = Category::find($id_category);
+        $oCategory["CategoryLang"] = CategoryLang::get()->where('id_category','=',$oCategory["id_category"])->first();
+        return response()->json($oCategory, 200);
     }
 
     /**
@@ -105,6 +119,22 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $id_category = $id;
+        $oCategory = $request;
+        $mCategory = Category::find($id_category);
+        if($oCategory["isUpdateAll"] == FALSE){
+            $mCategory->active = $oCategory["active"];
+            $mCategory->save();
+        }else{
+            $mCategory->date_upd = Carbon::now();
+            $mCategory->save();
+
+            $oCategoryLang = $oCategory["CategoryLang"]; 
+            $this->grabarCategoryLang($oCategoryLang,$id_category,false);
+
+        }
+
+        return response()->json(array("res"=>true), 200);
     }
 
     /**
@@ -120,50 +150,21 @@ class CategoryController extends Controller
 
     public function categoryByParents($id_category)
     {
-
-//    {
-//        $categoryByParents = DB::table('contihogar_category')
-//            ->leftJoin('contihogar_category_lang', 'contihogar_category.id_category', '=','contihogar_category_lang.id_category')
-//            ->leftJoin('contihogar_category_group', 'contihogar_category.id_category', '=', 'contihogar_category_group.id_category')
-//            ->leftJoin('contihogar_category_shop', 'contihogar_category.id_category', '=', 'contihogar_category_shop.id_category')
-//            ->where('contihogar_category_lang.id_lang', '=', $this->idlang)
-//            ->where('contihogar_category.id_parent', '=', $id_parent)
-//            ->groupBy('contihogar_category.id_category','')
-//            ->orderBy('contihogar_category.id_category')
-//            ->get();
-//var_dump($categoryByParents);
-//        $categoryByParents = DB::table('contihogar_category')
-//            ->join('contihogar_category_lang', function ($join) {
-//                $join->on('contihogar_category.id_category', '=', 'contihogar_category_lang.id_category');
-//            })->where('contihogar_category_lang.id_lang', '=', $this->idlang)
-//            ->where('contihogar_category.id_parent', '=', $id_parent)
-//            ->get();
-
-//        $facturasCliente = DB::table('contihogar_category')
-//            ->leftJoin('contihogar_category_lang', 'contihogar_category.id_category', '=', 'contihogar_category_lang.id_category')
-//            ->leftJoin('item_facturables', 'facturas.id', '=', 'item_facturables.id_factura')
-//            ->select('clientes.*', 'facturas.id as id_factura', 'facturas.fecha', 'concepto')
-//            ->where('clientes.email', '=', 'miguel@desarrolloweb.com')
-//            ->get();
-//        echo "<br>";
-
-
         $query = "SELECT    c.id_parent,
                             c.id_category,
-                            CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(level_depth,1,''),2,'--'),3,'---'),4,'----'),cl.name) as name,
-                            cl.description,
-                            cl.link_rewrite,
+                            CONCAT(REPLACE(REPLACE(REPLACE(REPLACE(level_depth,1,''),2,'-- '),3,'--- '),4,'---- '),cl.name) as name,
                             cs.position,
-                            level_depth
+                            level_depth,
+                            c.active
                     FROM contihogar_category c
-                    LEFT JOIN contihogar_category_lang cl ON (c.id_category = cl.id_category AND id_lang = '1')
+                    LEFT JOIN contihogar_category_lang cl ON (c.id_category = cl.id_category AND id_lang = :id_lang)
                     LEFT JOIN contihogar_category_group cg ON (cg.id_category = c.id_category)
                     LEFT JOIN contihogar_category_shop cs ON (c.id_category = cs.id_category )
                     WHERE c.id_category <> :id_category
-                    GROUP BY c.id_parent,c.id_category,cl.name,cl.description,cl.link_rewrite, cs.position, level_depth
+                    GROUP BY c.id_parent,c.id_category,cl.name, cs.position, level_depth
                     ORDER BY cs.position ASC,c.id_parent ASC,level_depth ASC";
 
-        $results = DB::select( DB::raw($query), array('id_category' => $id_category));
+        $results = DB::select(DB::raw($query), array('id_lang'=>$this->id_lang,'id_category' => $id_category));
         //var_dump($results);
 
         return response()->json($results,200);
@@ -171,9 +172,30 @@ class CategoryController extends Controller
 
     public function categoryByDepth()
     {
-
         $categoryByDepth = Category::with('CategoryLang')->where('level_depth','=','2')->orderBy('level_depth', 'asc')->get();
-
         return response()->json($categoryByDepth,200);
+    }
+
+    /**
+     * Graba la entidad especificada CategoryLang
+     * 
+     * @param \App\CategoryLang
+     * @return void
+     */
+    private function grabarCategoryLang($oCategoryLang,$id_category,$isNew){
+        if(!$isNew){
+            CategoryLang::where('id_category','=',$id_category)->where('id_lang','=',$this->id_lang)->delete();
+        }
+        $mCategoryLang = new CategoryLang();
+        $mCategoryLang->id_category = $id_category;
+        $mCategoryLang->id_shop = $this->id_shop;
+        $mCategoryLang->id_lang = $this->id_lang;
+        $mCategoryLang->name = $oCategoryLang['name'];
+        $mCategoryLang->description = $oCategoryLang['description'];
+        $mCategoryLang->link_rewrite = $oCategoryLang['link_rewrite'];
+        $mCategoryLang->meta_title = $oCategoryLang['meta_title'];
+        $mCategoryLang->meta_keywords = $oCategoryLang['meta_keywords'];
+        $mCategoryLang->meta_description = $oCategoryLang['meta_description'];
+        $mCategoryLang->save();
     }
 }
