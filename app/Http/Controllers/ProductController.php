@@ -93,16 +93,7 @@ class ProductController extends Controller
             $mProduct->pack_stock_type = 3;
             $mProduct->state = 1;
             $mProduct->nuevo = 1;
-
             $mProduct->save();
-
-            $mProductShop = new ProductShop();
-            $mProductShop->id_product = $mProduct->id_product;
-            $mProductShop->id_shop = $this->id_shop;
-            $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
-            $mProductShop->date_add = Carbon::now();
-            $mProductShop->date_upd = Carbon::now();
-            $mProductShop->save();
 
             //Grabar Product_lang
             $oProductLang =  $oProduct["Product"]["ProductLang"];
@@ -128,6 +119,16 @@ class ProductController extends Controller
             $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
             $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
             $mProductEvent->save();
+
+            //Product Shop
+            $mProductShop = new ProductShop();
+            $mProductShop->id_product = $mProduct->id_product;
+            $mProductShop->id_shop = $this->id_shop;
+            $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
+            $mProductShop->
+            $mProductShop->date_add = Carbon::now();
+            $mProductShop->date_upd = Carbon::now();
+            $mProductShop->save();
 
             //Agregar Product Item
             $oProductItems = $oProduct["Product"]["ProductItem"];

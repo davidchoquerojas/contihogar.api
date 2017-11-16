@@ -149,7 +149,7 @@ class ProductAttributeController extends Controller
     {
         //
     }
-    public function crearRutaImage($id_image){
+    private function crearRutaImage($id_image){
         $strUrl = "";
         $iLenght = strlen($id_image);
         for($_i = 0;$_i < $iLenght ;$_i++){
