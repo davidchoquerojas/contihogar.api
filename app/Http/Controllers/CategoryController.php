@@ -161,7 +161,7 @@ class CategoryController extends Controller
                     LEFT JOIN contihogar_category_group cg ON (cg.id_category = c.id_category)
                     LEFT JOIN contihogar_category_shop cs ON (c.id_category = cs.id_category )
                     WHERE c.id_category <> :id_category
-                    GROUP BY c.id_parent,c.id_category,cl.name, cs.position, level_depth
+                    GROUP BY c.id_parent,c.id_category,cl.name, cs.position, level_depth,c.active
                     ORDER BY cs.position ASC,c.id_parent ASC,level_depth ASC";
 
         $results = DB::select(DB::raw($query), array('id_lang'=>$this->id_lang,'id_category' => $id_category));
