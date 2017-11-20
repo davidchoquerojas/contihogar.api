@@ -136,6 +136,8 @@ class SupplierController extends Controller
     public function show($id)
     {
         //
+        $id_supplier = $id;
+        $oSupplier = Supplier::find($id_supplier);
     }
 
     /**
