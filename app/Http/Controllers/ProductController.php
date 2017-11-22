@@ -125,7 +125,7 @@ class ProductController extends Controller
             $mProductShop->id_product = $mProduct->id_product;
             $mProductShop->id_shop = $this->id_shop;
             $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
-            $mProductShop->
+            //$mProductShop->
             $mProductShop->date_add = Carbon::now();
             $mProductShop->date_upd = Carbon::now();
             $mProductShop->save();
