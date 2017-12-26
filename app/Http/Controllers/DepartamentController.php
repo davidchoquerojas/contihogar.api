@@ -19,12 +19,12 @@ class DepartamentController extends Controller
     public function index()
     {
         //
-        $oDepartaments = Departament::get()->where('id_country','=',$this->id_country);
-        $oListDepartament = array();
+        $oDepartaments = Departament::where('id_country','=',$this->id_country)->get();
+        /*$oListDepartament = array();
         foreach($oDepartaments as $oDepartament){
             array_push($oListDepartament,$oDepartament);
-        }
-        return response()->json($oListDepartament,200);
+        }*/
+        return response()->json($oDepartaments,200);
     }
 
     /**
@@ -94,41 +94,33 @@ class DepartamentController extends Controller
     }
 
     public function getProvince($id_departament){
-        $oProvinces = Province::get()->where('id_departamento','=',$id_departament);
-        $oListProvinces = array();
+        $oProvinces = Province::where('id_departamento','=',$id_departament)->get();
+        /*$oListProvinces = array();
         foreach($oProvinces as $oProvince){
             array_push($oListProvinces,$oProvince);
-        }
-        return response()->json($oListProvinces, 200);
+        }*/
+        return response()->json($oProvinces, 200);
     }
 
     public function getDistrict($id_province){
-        $oDistrincts = District::get()->where('id_provincia','=',$id_province);
-        $oListDistrinct = array();
+        $oDistrincts = District::where('id_provincia','=',$id_province)->get();
+        /*$oListDistrinct = array();
         foreach($oDistrincts as $oDistrict){
             array_push($oListDistrinct,$oDistrict);
-        }
-        return response()->json($oListDistrinct, 200);
+        }*/
+        return response()->json($oDistrincts, 200);
     }
 
     public function getZoneDeliveryFree(){
-        $oDepartaments = Departament::get()->where('id_country','=',$this->id_country);
-        $oListDepartament = array();
+        $oDepartaments = Departament::where('id_country','=',$this->id_country)->get();
         foreach($oDepartaments as $key=>$oDepartament){
-            $oProvinces = Province::get()->where('id_departamento','=',$oDepartament["id_state"]);
-            $oListProvinces = array();
+            $oProvinces = Province::where('id_departamento','=',$oDepartament["id_state"])->get();
             foreach ($oProvinces as $key1 => $oProvince) {
-                $oDistricts = District::get()->where('id_provincia','=',$oProvince["id_provincia"]);
-                $oListDistrinct = array();
-                foreach($oDistricts as $oDistrict){
-                    array_push($oListDistrinct,$oDistrict);
-                }
-                $oProvinces[$key1]["Distrinct"] = $oListDistrinct;
-                array_push($oListProvinces,$oProvinces[$key1]);
+                $oDistricts = District::where('id_provincia','=',$oProvince["id_provincia"])->get();
+                $oProvinces[$key1]["Distrinct"] = $oDistricts;
             }
-            $oDepartaments[$key]["Province"] = $oListProvinces;
-            array_push($oListDepartament,$oDepartaments[$key]);
+            $oDepartaments[$key]["Province"] = $oProvinces;
         }
-        return response()->json($oListDepartament, 200);
+        return response()->json($oDepartaments, 200);
     }
 }

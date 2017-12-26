@@ -4,10 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\ProductEvent;
-
-use Carbon\Carbon;
-class ProductEventController extends Controller
+class SpecificPriceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -85,32 +82,30 @@ class ProductEventController extends Controller
         //
     }
 
-    /**
-     * Graba o actualiza el product Event
-     * 
-     * @param App\ProductEvent $oProductEvent
-     * @return void
-     */
-    public function save($oProductEvent,$isNew){
+    public function save($id_product,$id_shop,$descount,$from,$to,$isNew){
         //
-        $id = $oProductEvent["id_product_event"];
-        $mProductEvent = NULL;
+        $$mSpecificPrice = NULL;
         if(!$isNew)
-            $mProductEvent = ProductEvent::find($id);
+            $mSpecificPrice = SpecificPrice::where('id_product','=',$id_product)->first();
         else
-            $mProductEvent = new ProductEvent();
+            $mSpecificPrice = new SpecificPrice();
 
-        $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
-        $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
-        $mProductEvent->price_impact = $oProductEvent["price_impact"];
-        $mProductEvent->cost_impact = $oProductEvent["cost_impact"];
-        $mProductEvent->event_price = $oProductEvent["event_price"];
-        $mProductEvent->event_cost = $oProductEvent["event_cost"];
-        $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
-        $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
-        $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
-        $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
-        $mProductEvent->save();
-    
+        $mSpecificPrice->id_specific_price_rule = 0;
+        $mSpecificPrice->id_cart = 0;
+        $mSpecificPrice->id_product = $id_product;
+        $mSpecificPrice->id_shop = $id_shop;
+        $mSpecificPrice->id_shop_group = 0;
+        $mSpecificPrice->id_currency = 0;
+        $mSpecificPrice->country = 0;
+        $mSpecificPrice->id_group = 0;
+        $mSpecificPrice->id_customer = 0;
+        $mSpecificPrice->id_product_attribute = 0;
+        $mSpecificPrice->price = -1;
+        $mSpecificPrice->from_quantity = 1;
+        $mSpecificPrice->reduction = $descount;
+        $mSpecificPrice->reduction_type = "percentage";
+        $mSpecificPrice->from = $from;
+        $mSpecificPrice->to = $to;
+        $mSpecificPrice->save();
     }
 }

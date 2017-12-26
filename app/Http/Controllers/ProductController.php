@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+
 use App\Product;
 use App\ProductLang;
 use App\ProductEvent;
@@ -47,6 +48,7 @@ class ProductController extends Controller
         try{
             // Grabar Productos
             $oProduct = $request->all();
+            $oProductEvent = $oProduct["Product"]["ProductEvent"];
 
             $mProduct = new Product();
             $mProduct->id_supplier = $oProduct["Product"]["id_supplier"];
@@ -55,28 +57,14 @@ class ProductController extends Controller
             $mProduct->id_shop_default = 1;
             $mProduct->id_tax_rules_group = 1;
             $mProduct->on_sale = 1;
-            $mProduct->online_only = 0;
-            $mProduct->ecotax = 0;
             $mProduct->quantity = $oProduct["Product"]["quantity"];
-            $mProduct->minimal_quantity = 1;
-            $mProduct->price = 0;
-            $mProduct->wholesale_price = 0;
-            $mProduct->unit_price_ratio = 0;
+            $mProduct->price = $oProductEvent["price_impact"];
+            $mProduct->wholesale_price = $oProductEvent["cost_impact"];
             $mProduct->additional_shipping_cost = 0;
             $mProduct->reference = $oProduct["Product"]["reference"];
-            $mProduct->width = 0;
-            $mProduct->height = 0;
-            $mProduct->depth = 0;
-            $mProduct->weight = 0;
-            $mProduct->out_of_stock = 0;
-            $mProduct->quantity_discount = 0;
-            $mProduct->customizable =
-            $mProduct->uploadable_files =
-            $mProduct->text_fields =
             $mProduct->active = 0;
             $mProduct->redirect_type = "404";
             $mProduct->id_type_redirected = 0;
-            $mProduct->available_for_order = 1;
             //$mProduct->available_date = \DateTime('today');
             $mProduct->show_condition = 0;
             $mProduct->condition = $oProduct["Product"]["condition"];;
@@ -99,27 +87,6 @@ class ProductController extends Controller
             $oProductLang =  $oProduct["Product"]["ProductLang"];
             $this->grabarProductLang($oProductLang,$mProduct->id_product,true);
 
-            //Grabar CategoryProduct
-            $listCategoryProduct = $oProduct["Product"]["CategoryProduct"];
-            $this->grabarProductCategory($listCategoryProduct,$mProduct->id_product,true);
-
-            //Grabar ProductEvent
-            $oProductEvent = $oProduct["Product"]["ProductEvent"];
-            $mProductEvent = new ProductEvent();
-            //$mProductEvent->id_product_event = ;
-            $mProductEvent->id_product = $mProduct->id_product;;
-            $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
-            $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
-            $mProductEvent->price_impact = $oProductEvent["price_impact"];
-            $mProductEvent->cost_impact = $oProductEvent["cost_impact"];
-            $mProductEvent->event_price = $oProductEvent["event_price"];
-            $mProductEvent->event_cost = $oProductEvent["event_cost"];
-            $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
-            $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
-            $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
-            $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
-            $mProductEvent->save();
-
             //Product Shop
             $mProductShop = new ProductShop();
             $mProductShop->id_product = $mProduct->id_product;
@@ -129,6 +96,20 @@ class ProductController extends Controller
             $mProductShop->date_add = Carbon::now();
             $mProductShop->date_upd = Carbon::now();
             $mProductShop->save();
+
+            $oSpecificPrice = new SpecificPrice();
+            $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],'0000-00-00 00:00:00','0000-00-00 00:00:00',true);
+
+            $oLayeredPriceIndex = new LayeredPriceIndex();
+            $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,true);
+
+            //Grabar CategoryProduct
+            $listCategoryProduct = $oProduct["Product"]["CategoryProduct"];
+            $this->grabarProductCategory($listCategoryProduct,$mProduct->id_product,true);
+
+            //Grabar ProductEvent
+            $oProductEvent = new ProductEvent();
+            $oProductEvent->save($oProductEvent,false);
 
             //Agregar Product Item
             $oProductItems = $oProduct["Product"]["ProductItem"];
@@ -167,23 +148,24 @@ class ProductController extends Controller
     public function edit($id)
     {
         //
+        //var_dump($id);
         $oProduct = Product::find($id);
         if($oProduct == NULL) return response()->json(array("NO DATA"), 200);
         
-        $oProduct["ProductLang"] = ProductLang::get()->where('id_product','=',$oProduct->id_product)->first();
-        $oProduct["CategoryProduct"] = CategoryProduct::get()->where('id_product','=',$oProduct->id_product);
-        $oProduct["ProductEvent"] = ProductEvent::get()->where('id_product','=',$oProduct->id_product)->first();
-        $oProduct["ProductItem"] = ProductItem::get()->where('id_product','=',$oProduct->id_product);
+        $oProduct["ProductLang"] = ProductLang::where('id_product','=',$oProduct->id_product)->first();
+        $oProduct["ProductEvent"] = ProductEvent::where('id_product','=',$oProduct->id_product)->first();
+        $oProduct["CategoryProduct"] = CategoryProduct::where('id_product','=',$oProduct->id_product)->get();
+        $oProduct["ProductItem"] = ProductItem::where('id_product','=',$oProduct->id_product)->get();
         foreach($oProduct["ProductItem"] as $key=>$oProductItem){
-            $oProduct["ProductItem"][$key]["ProductItemCaracteristica"] = ProductItemCaracteristica::get()->where('id_product_item','=',$oProductItem["id_product_item"]);
-            $oProduct["ProductItem"][$key]["ProductItemShipping"] = ProductItemShipping::get()->where('id_product_item','=',$oProductItem["id_product_item"]);
+            $oProduct["ProductItem"][$key]["ProductItemCaracteristica"] = ProductItemCaracteristica::where('id_product_item','=',$oProductItem["id_product_item"])->get();
+            $oProduct["ProductItem"][$key]["ProductItemShipping"] = ProductItemShipping::where('id_product_item','=',$oProductItem["id_product_item"])->orderBy('orden','ASC')->get();
         }
-        $oProduct["ModelProduct"] = ModelProduct::get()->where('id_product','=',$oProduct->id_product);
+        $oProduct["ModelProduct"] = ModelProduct::where('id_product','=',$oProduct->id_product)->get();
         foreach($oProduct["ModelProduct"] as $key=>$oModelProduct){
-            $oProduct["ModelProduct"][$key]["model"] = Models::get()->where('id_model','=',$oModelProduct["id_model"])->first();
+            $oProduct["ModelProduct"][$key]["model"] = Models::where('id_model','=',$oModelProduct["id_model"])->first();
         }
 
-        $oProduct["ProductCrossCategory"] = ProductCrossCategory::get()->where('id_product','=',$oProduct->id_product);
+        $oProduct["ProductCrossCategory"] = ProductCrossCategory::where('id_product','=',$oProduct->id_product)->get();
         foreach($oProduct["ProductCrossCategory"] as $key=>$oProductCrossCategory){
             $oProduct["ProductCrossCategory"][$key]["Category"] = Category::with("CategoryLang")->where('id_category','=',$oProductCrossCategory["id_category"])->first();
         }
@@ -212,6 +194,7 @@ class ProductController extends Controller
         $mProduct->quantity = $oProduct["quantity"];
         $mProduct->condition = $oProduct["condition"];
         $mProduct->reference = $oProduct["reference"];
+        $mProduct->price = $oProduct["ProductEvent"]['price_impact'];
         $mProduct->save();
         
 
@@ -224,20 +207,11 @@ class ProductController extends Controller
         $this->grabarProductCategory($listCategoryProduct,$id_product,false);
 
         //Actualizar Product Event
-        $oProductEvent = $oProduct["ProductEvent"];
-        $mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
-        $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
-        $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
-        $mProductEvent->price_impact = $oProductEvent["price_impact"];
-        $mProductEvent->cost_impact = $oProductEvent["cost_impact"];
-        $mProductEvent->event_price = $oProductEvent["event_price"];
-        $mProductEvent->event_cost = $oProductEvent["event_cost"];
-        $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
-        $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
-        $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
-        $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
-        $mProductEvent->save();
-
+        $oProductEvent = new ProductEvent();
+        $oProductEvent->save($oProduct["ProductEvent"],false);
+        
+        //$mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
+        
 
         //Actualiza Product Item
         $oProductItems = $oProduct["ProductItem"];
@@ -318,6 +292,7 @@ class ProductController extends Controller
                 $mProductItemShipping->alto = $oProductItemShipping["alto"];
                 $mProductItemShipping->profundidad = $oProductItemShipping["profundidad"];
                 $mProductItemShipping->peso = $oProductItemShipping["peso"];
+                $mProductItemShipping->orden = $oProductItemShipping["orden"];
                 $mProductItemShipping->save();
             }
         }

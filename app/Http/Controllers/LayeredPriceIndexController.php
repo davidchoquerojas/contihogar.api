@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\ProductEvent;
+use App\PlayeredPriceIndex;
 
-use Carbon\Carbon;
-class ProductEventController extends Controller
+class LayeredPriceIndexController extends Controller
 {
+    private $id_currency = 1;
+    private $id_shop = 1;
     /**
      * Display a listing of the resource.
      *
@@ -85,32 +86,19 @@ class ProductEventController extends Controller
         //
     }
 
-    /**
-     * Graba o actualiza el product Event
-     * 
-     * @param App\ProductEvent $oProductEvent
-     * @return void
-     */
-    public function save($oProductEvent,$isNew){
-        //
-        $id = $oProductEvent["id_product_event"];
-        $mProductEvent = NULL;
-        if(!$isNew)
-            $mProductEvent = ProductEvent::find($id);
-        else
-            $mProductEvent = new ProductEvent();
+    public function save($id,$id_product,$price,$isNew){
 
-        $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
-        $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
-        $mProductEvent->price_impact = $oProductEvent["price_impact"];
-        $mProductEvent->cost_impact = $oProductEvent["cost_impact"];
-        $mProductEvent->event_price = $oProductEvent["event_price"];
-        $mProductEvent->event_cost = $oProductEvent["event_cost"];
-        $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
-        $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
-        $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
-        $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
-        $mProductEvent->save();
-    
+        $mLayeredPriceIndex = NULL;
+        if(!$isNew)
+            $mLayeredPriceIndex = PlayeredPriceIndex::where('id_product','=',$id_product)->first(); //PlayeredPriceIndex::find($id);
+        else
+            $mLayeredPriceIndex = new PlayeredPriceIndex();
+
+        $mLayeredPriceIndex->id_product = $id_product;
+        $mLayeredPriceIndex->id_currency = $this->id_currency;
+        $mLayeredPriceIndex->id_shop = $this->id_shop;
+        $mLayeredPriceIndex->price_min = floor($price);
+        $mLayeredPriceIndex->price_max = round($price);
+        $mLayeredPriceIndex->save();
     }
 }
