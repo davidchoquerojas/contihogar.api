@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
+use Carbon\Carbon;
 
 use Illuminate\Http\Request;
-use App\ProductAttributeImage;
+use App\ProductAttributeShop;
 
-class ProductAttributeImageController extends Controller
+class ProductAttributeShopController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -22,9 +23,27 @@ class ProductAttributeImageController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($id_product,$id_product_attribute,$id_shop)
     {
         //
+        if(ProductAttributeShop::where('id_product','=',$id_product)->exists()){
+            $mProductAttributeShop = new ProductAttributeShop();
+            $mProductAttributeShop->id_product = $id_product;
+            $mProductAttributeShop->id_product_attribute = $id_product_attribute;
+            $mProductAttributeShop->id_shop = $id_shop;
+            $mProductAttributeShop->default_on = NULL;
+            $mProductAttributeShop->available_date = Carbon::now();
+            $mProductAttributeShop->save();
+        }else{
+            $mProductAttributeShop = new ProductAttributeShop();
+            $mProductAttributeShop->id_product = $id_product;
+            $mProductAttributeShop->id_product_attribute = $id_product_attribute;
+            $mProductAttributeShop->id_shop = $id_shop;
+            $mProductAttributeShop->default_on = 1;
+            $mProductAttributeShop->available_date = Carbon::now();
+            $mProductAttributeShop->save();
+        }
+        
     }
 
     /**
@@ -36,13 +55,6 @@ class ProductAttributeImageController extends Controller
     public function store(Request $request)
     {
         //
-        $oProductAttributeImage = $request;
-        $mProductAttributeImage = new ProductAttributeImage();
-        $mProductAttributeImage->id_product_attribute = $oProductAttributeImage["id_product_attribute"];
-        $mProductAttributeImage->id_image = $oProductAttributeImage["id_image"];
-        $mProductAttributeImage->save();
-
-        return response()->json($mProductAttributeImage, 200);
     }
 
     /**

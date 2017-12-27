@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\ProductAttributeImage;
 use App\Image;
+use App\ImageLang;
+use App\ImageShop;
 use App\Library;
 
 class ImageController extends Controller
@@ -146,6 +148,8 @@ class ImageController extends Controller
         try{
             $id_image = $id;
             ProductAttributeImage::where('id_image','=',$id_image)->delete();
+            ImageShop::where('id_image','=',$id_image)->delete();
+            ImageLang::where('id_image','=',$id_image)->delete();
             Image::destroy($id_image);
 
             return response()->json(array("res"=>true),200);

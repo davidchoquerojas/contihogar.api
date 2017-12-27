@@ -12,9 +12,11 @@ use DB;
 
 class ProductAttributeController extends Controller
 {
+    private $id_shop = 1;
     private $id_attribute_group = 3;
     private $pressta_shop_url;
     private $img_prefix_ext = ".jpg";
+
     public function __construct(){
         $this->pressta_shop_url = \Config::get('constants.pressta_shop.url');
     }
@@ -47,8 +49,10 @@ class ProductAttributeController extends Controller
     public function store(Request $request)
     {
         //
+        //var_dump("aqui_primero");
         $oAttribute = $request["Attribute"];
         if(intval($oAttribute["id_attribute"]) > 0){
+            //var_dump('aqui');
             $mAttribute = Attribute::find($oAttribute["id_attribute"]);
             $mAttribute->color = $oAttribute["color"];
             $mAttribute->save();
@@ -56,11 +60,9 @@ class ProductAttributeController extends Controller
             return response()->json($mAttribute, 200);
             
         }else{
-            $mAttribute = new Attribute();
-            $mAttribute->id_attribute_group = $this->id_attribute_group;
-            $mAttribute->color = $oAttribute["color"];
-            $mAttribute->position++;
-            $mAttribute->save();
+            //var_dump('aqii12');
+            $mAttribute = new AttributeController();
+            $oAttribute = $mAttribute->save($oAttribute);
 
             $oProductAttribute = $request["ProductAttribute"];
             $mProductAttribute = new ProductAttribute();
@@ -76,11 +78,17 @@ class ProductAttributeController extends Controller
             $mProductAttribute->save();
     
             $mProductAttributeCombination = new ProductAttributeCombination();
-            $mProductAttributeCombination->id_attribute = $mAttribute->id_attribute;
+            $mProductAttributeCombination->id_attribute = $oAttribute->id_attribute;
             $mProductAttributeCombination->id_product_attribute = $mProductAttribute->id_product_attribute;
             $mProductAttributeCombination->save();
 
-            return response()->json($mAttribute, 200);
+            $mStockAvailable = new StockAvailableController();
+            $mStockAvailable->create($mProductAttribute);
+
+            $mProductAttributeShop = new ProductAttributeShopController();
+            $mProductAttributeShop->create($mProductAttribute->id_product,$mProductAttribute->id_product_attribute,$this->id_shop);
+
+            return response()->json($oAttribute, 200);
         }
     }
 
@@ -102,7 +110,7 @@ class ProductAttributeController extends Controller
                             ->get();
         //var_dump($oAttributes);
         foreach($oAttributes as $key=>$oAttribute){
-            $oProductImages = ProductAttributeImage::get()->where('id_product_attribute','=',$oAttribute->id_product_attribute);
+            $oProductImages = ProductAttributeImage::where('id_product_attribute','=',$oAttribute->id_product_attribute)->get();
             $oListProductImages = array();
             foreach($oProductImages as $oProductImage){
                 $oProductImage["src"] = $this->pressta_shop_url."/img/p/".$this->crearRutaImage($oProductImage["id_image"])."/".$oProductImage["id_image"].$this->img_prefix_ext;

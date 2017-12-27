@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\ProductAttributeImage;
+use App\StockAvailable;
 
-class ProductAttributeImageController extends Controller
+class StockAvailableController extends Controller
 {
+    private $id_shop = 1;
+    private $id_shop_group = 0;
     /**
      * Display a listing of the resource.
      *
@@ -22,9 +24,21 @@ class ProductAttributeImageController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($oProductAttribute)
     {
         //
+        $mStockAvailable = new StockAvailable();
+        $mStockAvailable->id_product = $oProductAttribute->id_product;
+        $mStockAvailable->id_product_attribute = $oProductAttribute->id_product_attribute;
+        $mStockAvailable->id_shop = $this->id_shop;
+        $mStockAvailable->id_shop_group = $this->id_shop_group;
+        $mStockAvailable->quantity = $oProductAttribute->quantity;
+        $mStockAvailable->physical_quantity = $oProductAttribute->quantity;
+        $mStockAvailable->reserved_quantity = 0;
+        $mStockAvailable->depends_on_stock = 0;
+        $mStockAvailable->out_of_stock = 0;
+        $mStockAvailable->save();
+
     }
 
     /**
@@ -36,13 +50,6 @@ class ProductAttributeImageController extends Controller
     public function store(Request $request)
     {
         //
-        $oProductAttributeImage = $request;
-        $mProductAttributeImage = new ProductAttributeImage();
-        $mProductAttributeImage->id_product_attribute = $oProductAttributeImage["id_product_attribute"];
-        $mProductAttributeImage->id_image = $oProductAttributeImage["id_image"];
-        $mProductAttributeImage->save();
-
-        return response()->json($mProductAttributeImage, 200);
     }
 
     /**
