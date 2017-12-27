@@ -91,7 +91,7 @@ class ProductEventController extends Controller
      * @param App\ProductEvent $oProductEvent
      * @return void
      */
-    public function save($oProductEvent,$isNew){
+    public function save($oProductEvent,$id_product,$isNew){
         //
         $id = $oProductEvent["id_product_event"];
         $mProductEvent = NULL;
@@ -100,6 +100,8 @@ class ProductEventController extends Controller
         else
             $mProductEvent = new ProductEvent();
 
+        //var_dump($mProductEvent);
+        $mProductEvent->id_product = $id_product;
         $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
         $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
         $mProductEvent->price_impact = $oProductEvent["price_impact"];
@@ -111,6 +113,5 @@ class ProductEventController extends Controller
         $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
         $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
         $mProductEvent->save();
-    
     }
 }

@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\ProductShop;
 
-use App\SpecificPrice;
+use Carbon\Carbon;
 
-class SpecificPriceController extends Controller
+class ProductShopController extends Controller
 {
+    private $id_lang = 2;
+    private $id_shop = 1;
+    private $id_attribute_group = 3;
+    private $id_tax_rules_group = 1;
     /**
      * Display a listing of the resource.
      *
@@ -84,30 +89,21 @@ class SpecificPriceController extends Controller
         //
     }
 
-    public function save($id_product,$id_shop,$descount,$from,$to,$isNew){
-        //
-        $mSpecificPrice = NULL;
+    public function save($oProduct,$isNew){
+        $mProductShop = NULL;
         if(!$isNew)
-            $mSpecificPrice = SpecificPrice::where('id_product','=',$id_product)->first();
+            $mProductShop = ProductShop::where('id_product','=',$oProduct->id_product)->first();
         else
-            $mSpecificPrice = new SpecificPrice();
-
-        $mSpecificPrice->id_specific_price_rule = 0;
-        $mSpecificPrice->id_cart = 0;
-        $mSpecificPrice->id_product = $id_product;
-        $mSpecificPrice->id_shop = $id_shop;
-        $mSpecificPrice->id_shop_group = 0;
-        $mSpecificPrice->id_currency = 0;
-        $mSpecificPrice->id_country = 0;
-        $mSpecificPrice->id_group = 0;
-        $mSpecificPrice->id_customer = 0;
-        $mSpecificPrice->id_product_attribute = 0;
-        $mSpecificPrice->price = -1;
-        $mSpecificPrice->from_quantity = 1;
-        $mSpecificPrice->reduction = $descount;
-        $mSpecificPrice->reduction_type = "percentage";
-        $mSpecificPrice->from = $from;
-        $mSpecificPrice->to = $to;
-        $mSpecificPrice->save();
+            $mProductShop = new ProductShop();
+        
+        $mProductShop->id_product = $oProduct->id_product;
+        $mProductShop->id_shop = $this->id_shop;
+        $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
+        $mProductShop->price = $oProduct->price;
+        $mProductShop->wholesale_price = $oProduct->price;
+        //$mProductShop->
+        $mProductShop->date_add = Carbon::now();
+        $mProductShop->date_upd = Carbon::now();
+        $mProductShop->save();
     }
 }

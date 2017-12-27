@@ -7,7 +7,6 @@ use Carbon\Carbon;
 
 use App\Product;
 use App\ProductLang;
-use App\ProductEvent;
 use App\CategoryProduct;
 use App\ProductItem;
 use App\ProductItemShipping;
@@ -18,7 +17,6 @@ use App\ModelProduct;
 use App\ProductCrossCategory;
 use App\Category;
 
-use App\ProductShop;
 
 class ProductController extends Controller
 {
@@ -88,19 +86,13 @@ class ProductController extends Controller
             $this->grabarProductLang($oProductLang,$mProduct->id_product,true);
 
             //Product Shop
-            $mProductShop = new ProductShop();
-            $mProductShop->id_product = $mProduct->id_product;
-            $mProductShop->id_shop = $this->id_shop;
-            $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
-            //$mProductShop->
-            $mProductShop->date_add = Carbon::now();
-            $mProductShop->date_upd = Carbon::now();
-            $mProductShop->save();
+            $oProductShop = new ProductShopController();
+            $oProductShop->save($mProduct,true);
 
-            $oSpecificPrice = new SpecificPrice();
-            $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],'0000-00-00 00:00:00','0000-00-00 00:00:00',true);
+            $oSpecificPrice = new SpecificPriceController();
+            $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],Carbon::minValue(),Carbon::minValue(),true);
 
-            $oLayeredPriceIndex = new LayeredPriceIndex();
+            $oLayeredPriceIndex = new LayeredPriceIndexController();
             $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,true);
 
             //Grabar CategoryProduct
@@ -108,8 +100,8 @@ class ProductController extends Controller
             $this->grabarProductCategory($listCategoryProduct,$mProduct->id_product,true);
 
             //Grabar ProductEvent
-            $oProductEvent = new ProductEvent();
-            $oProductEvent->save($oProductEvent,false);
+            $mProductEvent = new ProductEventController();
+            $mProductEvent->save($oProductEvent,$mProduct->id_product,true);
 
             //Agregar Product Item
             $oProductItems = $oProduct["Product"]["ProductItem"];
@@ -153,12 +145,12 @@ class ProductController extends Controller
         if($oProduct == NULL) return response()->json(array("NO DATA"), 200);
         
         $oProduct["ProductLang"] = ProductLang::where('id_product','=',$oProduct->id_product)->first();
-        $oProduct["ProductEvent"] = ProductEvent::where('id_product','=',$oProduct->id_product)->first();
+        $oProduct["ProductEvent"] = \App\ProductEvent::where('id_product','=',$oProduct->id_product)->first();
         $oProduct["CategoryProduct"] = CategoryProduct::where('id_product','=',$oProduct->id_product)->get();
         $oProduct["ProductItem"] = ProductItem::where('id_product','=',$oProduct->id_product)->get();
         foreach($oProduct["ProductItem"] as $key=>$oProductItem){
-            $oProduct["ProductItem"][$key]["ProductItemCaracteristica"] = ProductItemCaracteristica::where('id_product_item','=',$oProductItem["id_product_item"])->get();
-            $oProduct["ProductItem"][$key]["ProductItemShipping"] = ProductItemShipping::where('id_product_item','=',$oProductItem["id_product_item"])->orderBy('orden','ASC')->get();
+            $oProduct["ProductItem"][$key]["ProductItemCaracteristica"] = ProductItemCaracteristica::where('id_product_item','=',$oProductItem["id_product_item"])->orderBy('orden','ASC')->get();
+            $oProduct["ProductItem"][$key]["ProductItemShipping"] = ProductItemShipping::where('id_product_item','=',$oProductItem["id_product_item"])->get();
         }
         $oProduct["ModelProduct"] = ModelProduct::where('id_product','=',$oProduct->id_product)->get();
         foreach($oProduct["ModelProduct"] as $key=>$oModelProduct){
@@ -207,11 +199,18 @@ class ProductController extends Controller
         $this->grabarProductCategory($listCategoryProduct,$id_product,false);
 
         //Actualizar Product Event
-        $oProductEvent = new ProductEvent();
+        $oProductEvent = new ProductEventController();
         $oProductEvent->save($oProduct["ProductEvent"],false);
         
         //$mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
-        
+        $oProductShop = new ProductShopController();
+        $oProductShop->save($mProduct,false);
+
+        $oSpecificPrice = new SpecificPriceController();
+        $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProduct["ProductEvent"]["tax_price_impact"],Carbon::minValue(),Carbon::minValue(),false);
+
+        $oLayeredPriceIndex = new LayeredPriceIndexController();
+        $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,false);
 
         //Actualiza Product Item
         $oProductItems = $oProduct["ProductItem"];
@@ -277,6 +276,7 @@ class ProductController extends Controller
                 $mProductItemCaracteristica->nombre = $oProductItemCaracteristica["nombre"];
                 $mProductItemCaracteristica->valor = $oProductItemCaracteristica["valor"];
                 $mProductItemCaracteristica->campo = $oProductItemCaracteristica["campo"];
+                $mProductItemCaracteristica->orden = $oProductItemCaracteristica["orden"];
                 $mProductItemCaracteristica->save();
             }
 
@@ -292,7 +292,7 @@ class ProductController extends Controller
                 $mProductItemShipping->alto = $oProductItemShipping["alto"];
                 $mProductItemShipping->profundidad = $oProductItemShipping["profundidad"];
                 $mProductItemShipping->peso = $oProductItemShipping["peso"];
-                $mProductItemShipping->orden = $oProductItemShipping["orden"];
+                $mProductItemShipping->cantidad = $oProductItemShipping["cantidad"];
                 $mProductItemShipping->save();
             }
         }
@@ -388,7 +388,7 @@ class ProductController extends Controller
             $mCategoryProduct = new CategoryProduct();
             $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
             $mCategoryProduct->id_product =  $id_product;
-            $mCategoryProduct->position = 0;
+            $mCategoryProduct->position++;
             $mCategoryProduct->save();
         }
     }
