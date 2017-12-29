@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Carbon\Carbon;
 
 use App\Product;
@@ -16,6 +17,8 @@ use App\Models;
 use App\ModelProduct;
 use App\ProductCrossCategory;
 use App\Category;
+
+use DB;
 
 
 class ProductController extends Controller
@@ -391,5 +394,41 @@ class ProductController extends Controller
             $mCategoryProduct->position++;
             $mCategoryProduct->save();
         }
+    }
+
+    /**
+     * Lista los productos
+     * 
+     * @return App\Product
+     */
+    public function getProductGrid(){
+        $sqlQuery =  DB::table('contihogar_product')
+                        ->join('contihogar_product_lang','contihogar_product.id_product','=','contihogar_product_lang.id_product')
+                        ->leftJoin('contihogar_category','contihogar_product.id_category_default','=','contihogar_category.id_category')
+                        ->leftJoin('contihogar_category_lang','contihogar_category.id_category','=','contihogar_category_lang.id_category')
+                        ->leftJoin('contihogar_supplier','contihogar_product.id_supplier','=','contihogar_supplier.id_supplier')
+                        ->leftJoin('contihogar_manufacturer','contihogar_product.id_manufacturer','=','contihogar_manufacturer.id_manufacturer')
+                        ->leftJoin('contihogar_model_product','contihogar_product.id_product','=','contihogar_model_product.id_product')
+                        ->leftJoin('contihogar_model','contihogar_model_product.id_model','=','contihogar_model.id_model')
+                    ->where('contihogar_product_lang.id_lang','=',$this->id_lang)
+                    ->where('contihogar_category_lang.id_lang','=',$this->id_lang)
+                    ->select('contihogar_product.id_product', 
+                            'contihogar_product.reference', 
+                            'contihogar_product_lang.name as product', 
+                            'contihogar_product.id_supplier',
+                            'contihogar_product.price',
+                            'contihogar_product.wholesale_price',
+                            'contihogar_product.quantity',
+                            'contihogar_product.active',
+                            DB::raw('contihogar_product.price - contihogar_product.wholesale_price / 100 * 100 as margen'),
+                            'contihogar_supplier.name as supplier', 
+                            'contihogar_manufacturer.id_manufacturer',
+                            'contihogar_manufacturer.name as manufacturer',
+                            'contihogar_model_product.id_model',
+                            'contihogar_model.nombre as model',
+                            'contihogar_category.id_category',
+                            'contihogar_category_lang.name as category')->paginate(5);
+
+        return response()->json($sqlQuery,200);
     }
 }

@@ -50,8 +50,9 @@ Route::get('categoryByDepth', 'CategoryController@categoryByDepth');
 Route::post('category/store','CategoryController@store');
 
 
-Route::resource('product', 'ProductController');
+Route::get('product/getProductGrid','ProductController@getProductGrid');
 Route::post('product/store','ProductController@store');
+Route::resource('product', 'ProductController');
 
 Route::resource('modelo', 'ModelController');
 
