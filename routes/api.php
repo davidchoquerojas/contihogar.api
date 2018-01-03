@@ -65,4 +65,6 @@ Route::get('district/{id_province}', 'DepartamentController@getDistrict');
 Route::get('zone/delivery','DepartamentController@getZoneDeliveryFree');
 
 Route::get('order/productTop','OrderController@getProductTop');
-
+Route::get('order/supplierTop','OrderController@getSupplierTop');
+Route::get('order/categoryTop','OrderController@getCategoryTop');
+Route::get('order/total','OrderController@getTotal');

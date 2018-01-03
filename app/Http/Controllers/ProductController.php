@@ -401,18 +401,36 @@ class ProductController extends Controller
      * 
      * @return App\Product
      */
-    public function getProductGrid(){
-        $sqlQuery =  DB::table('contihogar_product')
-                        ->join('contihogar_product_lang','contihogar_product.id_product','=','contihogar_product_lang.id_product')
-                        ->leftJoin('contihogar_category','contihogar_product.id_category_default','=','contihogar_category.id_category')
-                        ->leftJoin('contihogar_category_lang','contihogar_category.id_category','=','contihogar_category_lang.id_category')
-                        ->leftJoin('contihogar_supplier','contihogar_product.id_supplier','=','contihogar_supplier.id_supplier')
-                        ->leftJoin('contihogar_manufacturer','contihogar_product.id_manufacturer','=','contihogar_manufacturer.id_manufacturer')
-                        ->leftJoin('contihogar_model_product','contihogar_product.id_product','=','contihogar_model_product.id_product')
-                        ->leftJoin('contihogar_model','contihogar_model_product.id_model','=','contihogar_model.id_model')
-                    ->where('contihogar_product_lang.id_lang','=',$this->id_lang)
-                    ->where('contihogar_category_lang.id_lang','=',$this->id_lang)
-                    ->select('contihogar_product.id_product', 
+    public function getProductGrid(Request $request){
+        //var_dump($request["_start"]);
+        $queryStructure = DB::table('contihogar_product')
+                            ->join('contihogar_product_lang','contihogar_product.id_product','=','contihogar_product_lang.id_product')
+                            ->leftJoin('contihogar_category','contihogar_product.id_category_default','=','contihogar_category.id_category')
+                            ->leftJoin('contihogar_category_lang','contihogar_category.id_category','=','contihogar_category_lang.id_category')
+                            ->leftJoin('contihogar_supplier','contihogar_product.id_supplier','=','contihogar_supplier.id_supplier')
+                            ->leftJoin('contihogar_manufacturer','contihogar_product.id_manufacturer','=','contihogar_manufacturer.id_manufacturer')
+                            ->leftJoin('contihogar_model_product','contihogar_product.id_product','=','contihogar_model_product.id_product')
+                            ->leftJoin('contihogar_model','contihogar_model_product.id_model','=','contihogar_model.id_model')
+                        ->where('contihogar_product_lang.id_lang','=',$this->id_lang)
+                        ->where('contihogar_category_lang.id_lang','=',$this->id_lang);
+        //Crear los condiciones acuerdo a los parametros indicados
+        if(isset($request["product"]) && $request["product"] != "")
+            $queryStructure->where('contihogar_product_lang.name','like','%'.$request["product"].'%');
+        if(isset($request["supplier"]) && $request["supplier"] != "")
+            $queryStructure->where('contihogar_supplier.name','like','%'.$request["supplier"].'%');
+        if(isset($request["manufacturer"]) && $request["manufacturer"] != "")
+            $queryStructure->where('contihogar_manufacturer.name','like','%'.$request["manufacturer"].'%');
+        if(isset($request["model"]) && $request["model"] != "")
+            $queryStructure->where('contihogar_model.nombre','like','%'.$request["model"].'%');
+        if(isset($request["category"]) && $request["category"] != "")
+            $queryStructure->where('contihogar_category_lang.name','like','%'.$request["category"].'%');
+        if(isset($request["reference"]) && $request["reference"] != "")
+            $queryStructure->where('contihogar_product.reference','=',$request['reference']);
+            
+        //Realizar con conteo de cuantos registros se encontraron
+        $totalQuery = $queryStructure->count();
+        $resultQuery =  $queryStructure->select(
+                            'contihogar_product.id_product', 
                             'contihogar_product.reference', 
                             'contihogar_product_lang.name as product', 
                             'contihogar_product.id_supplier',
@@ -427,8 +445,14 @@ class ProductController extends Controller
                             'contihogar_model_product.id_model',
                             'contihogar_model.nombre as model',
                             'contihogar_category.id_category',
-                            'contihogar_category_lang.name as category')->paginate(5);
+                            'contihogar_category_lang.name as category');
+                    if(isset($request["_sort"]))
+                        $resultQuery->orderBy($request["_sort"], $request["_order"]);
+                    $resultQuery->skip((int)$request["_start"])->take((int)$request["_limit"]);
+        $finally = $resultQuery->get();
+        $response["data"] = $finally;
+        $response["total"] = $totalQuery;
 
-        return response()->json($sqlQuery,200);
+        return response()->json($response,200);
     }
 }
