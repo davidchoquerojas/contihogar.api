@@ -53,6 +53,7 @@ Route::post('category/store','CategoryController@store');
 Route::get('product/getProductGrid','ProductController@getProductGrid');
 Route::post('product/store','ProductController@store');
 Route::post('product/listarMerge','ProductController@mergeUpload');
+Route::post('product/shippingCost','ProductController@getShippingCostById');
 Route::resource('product', 'ProductController');
 
 Route::resource('modelo', 'ModelController');

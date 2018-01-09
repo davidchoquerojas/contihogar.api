@@ -479,6 +479,7 @@ class ProductController extends Controller
 
     private function listProductsById($id_products){
         $sqlStructure = DB::table('contihogar_product')
+                            ->join('contihogar_product_shop','contihogar_product_shop.id_product','=','contihogar_product.id_product')
                             ->join('contihogar_product_lang','contihogar_product.id_product','=','contihogar_product_lang.id_product')
                             ->join('contihogar_specific_price','contihogar_specific_price.id_product','=','contihogar_product.id_product')
                             ->leftJoin('contihogar_category','contihogar_product.id_category_default','=','contihogar_category.id_category')
@@ -490,7 +491,8 @@ class ProductController extends Controller
                         ->whereIn('contihogar_product.id_product',$id_products);
         
             $sqlResult =  $sqlStructure->select(
-                        'contihogar_product.id_product', 
+                        'contihogar_product.id_product',
+                        'contihogar_product_shop.with_shipping_cost',
                         'contihogar_product.reference', 
                         'contihogar_product_lang.name as product', 
                         'contihogar_product.id_supplier',
@@ -504,7 +506,43 @@ class ProductController extends Controller
                         'contihogar_manufacturer.id_manufacturer',
                         'contihogar_manufacturer.name as manufacturer',
                         'contihogar_category.id_category',
-                        'contihogar_category_lang.name as category');
+                        'contihogar_category_lang.name as category',
+                        DB::raw('0 as item_sale'),
+                        DB::raw('0 as visit'),
+                        DB::raw('0 as cost_shipping'),
+                        DB::raw('0 as id_state')
+                        );
         return $sqlResult->get();
+    }
+    public function getShippingCostById(Request $request){
+        $cost_shipping = 0;
+        if(!CargaProvincia::where(['id_supplier','=',$request["id_supplier"],'active','=',1,'id_departamento','=',$request["id_departamento"]])->exists()){
+            $listProductItemShipping = [];
+            $oCargaProvincia = [];
+            $oCarrierCategory = [];
+            $costoPorFormula = 0;
+            $costoPorCateria = 0;
+
+            foreach($listProductItemShipping as $oProductItemShipping){
+                $altoAnchoProf = ((int)$oProductItemShipping["alto"]*(int)$oProductItemShipping["ancho"]*(int)$oProductItemShipping["profundidad"]/6000);
+                $altoAnchoProf = $altoAnchoProf > (int)$oProductItemShipping["peso"]?$altoAnchoProf:(int)$oProductItemShipping["peso"];
+                $costoPorFormula += ($oCargaProvincia["kilo_base_final"] + ($altoAnchoProf - 1) * floatval($oCargaProvincia["kilo_adicional"]) * $oProductItemShipping["cantidad"]);
+                if($oProductItemShipping['id_category_shipping'] != 0 && $oProductItemShipping['id_category_shipping'] != 11){
+                    //Ejecutar Query
+                    $costoPorCateria += floatval($carrierCategorys[0]["costo"]);
+                }
+            }
+            if($shippingCostFormula < $shippingCostCategory && $shippingCostCategory > 0)
+                $cost_shipping += $costoPorFormula;
+            else
+                $cost_shipping += $costoPorFormula;
+
+            if($shippingCostCategory < $shippingCostFormula && $shippingCostFormula > 0)
+                $cost_shipping += $costoPorCateria;
+            else
+                $cost_shipping += $costoPorCateria;
+        }
+
+        return response()->json(array("cost_shipping",$cost_shipping), 200);
     }
 }
