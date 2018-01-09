@@ -94,7 +94,7 @@ class CategoryController extends Controller
         //
         $id_category = $id;
         $oCategory = Category::find($id_category);
-        $oCategory["CategoryLang"] = CategoryLang::get()->where('id_category','=',$oCategory["id_category"])->first();
+        $oCategory["CategoryLang"] = CategoryLang::where('id_category','=',$oCategory["id_category"])->where('id_lang','=',$this->id_lang)->first();
         return response()->json($oCategory, 200);
     }
 
