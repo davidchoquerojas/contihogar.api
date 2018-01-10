@@ -17,6 +17,7 @@ use App\Models;
 use App\ModelProduct;
 use App\ProductCrossCategory;
 use App\Category;
+use App\SupplierCostShipping;
 
 use DB;
 use File;
@@ -516,33 +517,52 @@ class ProductController extends Controller
     }
     public function getShippingCostById(Request $request){
         $cost_shipping = 0;
-        if(!CargaProvincia::where(['id_supplier','=',$request["id_supplier"],'active','=',1,'id_departamento','=',$request["id_departamento"]])->exists()){
-            $listProductItemShipping = [];
-            $oCargaProvincia = [];
-            $oCarrierCategory = [];
+        if(!SupplierCostShipping::where('id_supplier','=',$request["id_supplier"])->where('active','=',1)->where('id_departamento','=',$request["id_state"])->exists()){
+            $listProductItemShipping = DB::table('contihogar_product_item_shipping')
+                                        ->join('contihogar_product_item','contihogar_product_item.id_product_item','=','contihogar_product_item_shipping.id_product_item')
+                                        ->where('contihogar_product_item.id_product','=',$request["id_product"])
+                                        ->select('contihogar_product_item_shipping.*')->get();
+            
+            $oCargaProvincia = DB::table('contihogar_carga_provincia')
+                                ->where('contihogar_carga_provincia.id_state','=',$request["id_state"])
+                                //->groupBy('contihogar_carga_provincia.id_state')
+                                ->select(
+                                        'contihogar_carga_provincia.id_state',
+                                        DB::raw('AVG(contihogar_carga_provincia.kilo_base_final) as kilo_base_final'),
+                                        'contihogar_carga_provincia.kilo_adicional')->first();
             $costoPorFormula = 0;
-            $costoPorCateria = 0;
+            $costoPorCategoria = 0;
 
-            foreach($listProductItemShipping as $oProductItemShipping){
-                $altoAnchoProf = ((int)$oProductItemShipping["alto"]*(int)$oProductItemShipping["ancho"]*(int)$oProductItemShipping["profundidad"]/6000);
-                $altoAnchoProf = $altoAnchoProf > (int)$oProductItemShipping["peso"]?$altoAnchoProf:(int)$oProductItemShipping["peso"];
-                $costoPorFormula += ($oCargaProvincia["kilo_base_final"] + ($altoAnchoProf - 1) * floatval($oCargaProvincia["kilo_adicional"]) * $oProductItemShipping["cantidad"]);
-                if($oProductItemShipping['id_category_shipping'] != 0 && $oProductItemShipping['id_category_shipping'] != 11){
-                    //Ejecutar Query
-                    $costoPorCateria += floatval($carrierCategorys[0]["costo"]);
+            if($oCargaProvincia){
+                foreach($listProductItemShipping as $oProductItemShipping){
+                    $altoAnchoProf = ((int)$oProductItemShipping->alto * (int)$oProductItemShipping->ancho * (int)$oProductItemShipping->profundidad / 6000);
+                    $altoAnchoProf = $altoAnchoProf > (int)$oProductItemShipping->peso?$altoAnchoProf:(int)$oProductItemShipping->peso;
+                    $costoPorFormula += ($oCargaProvincia->kilo_base_final + ($altoAnchoProf - 1) * floatval($oCargaProvincia->kilo_adicional) * $oProductItemShipping->cantidad);
+                    if($oProductItemShipping->id_category_shipping != 0 && $oProductItemShipping->id_category_shipping != 11){
+                        //Ejecutar Query
+                        $oCarrierCategory = DB::table('contihogar_carrier_category')
+                                            ->where('contihogar_carrier_category.id_departamento','=',$request["id_departamento"])
+                                            ->where('contihogar_carrier_category.id_category','=',$oProductItemShipping->id_category_shipping)
+                                            ->select(
+                                                DB::raw('AVG(contihogar_carrier_category.costo) as costo')
+                                            )->first();
+                        
+                        if($oCarrierCategory && $oCarrierCategory->costo != NULL)
+                            $costoPorCategoria += floatval($oCarrierCategory->costo);
+                    }
                 }
+                if($costoPorFormula < $costoPorCategoria && $costoPorCategoria > 0)
+                    $cost_shipping += $costoPorFormula;
+                else
+                    $cost_shipping += $costoPorFormula;
+    
+                if($costoPorCategoria < $costoPorFormula && $costoPorFormula > 0)
+                    $cost_shipping += $costoPorCategoria;
+                else
+                    $cost_shipping += $costoPorCategoria;
             }
-            if($shippingCostFormula < $shippingCostCategory && $shippingCostCategory > 0)
-                $cost_shipping += $costoPorFormula;
-            else
-                $cost_shipping += $costoPorFormula;
-
-            if($shippingCostCategory < $shippingCostFormula && $shippingCostFormula > 0)
-                $cost_shipping += $costoPorCateria;
-            else
-                $cost_shipping += $costoPorCateria;
         }
 
-        return response()->json(array("cost_shipping",$cost_shipping), 200);
+        return response()->json(array("cost_shipping"=>$cost_shipping), 200);
     }
 }
