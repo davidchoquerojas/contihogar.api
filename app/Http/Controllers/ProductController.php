@@ -483,6 +483,7 @@ class ProductController extends Controller
                             ->join('contihogar_product_shop','contihogar_product_shop.id_product','=','contihogar_product.id_product')
                             ->join('contihogar_product_lang','contihogar_product.id_product','=','contihogar_product_lang.id_product')
                             ->join('contihogar_specific_price','contihogar_specific_price.id_product','=','contihogar_product.id_product')
+                            ->join('contihogar_product_event','contihogar_product_event.id_product','=','contihogar_product.id_product')
                             ->leftJoin('contihogar_category','contihogar_product.id_category_default','=','contihogar_category.id_category')
                             ->leftJoin('contihogar_category_lang','contihogar_category.id_category','=','contihogar_category_lang.id_category')
                             ->leftJoin('contihogar_supplier','contihogar_product.id_supplier','=','contihogar_supplier.id_supplier')
@@ -493,6 +494,7 @@ class ProductController extends Controller
         
             $sqlResult =  $sqlStructure->select(
                         'contihogar_product.id_product',
+                        'contihogar_product_event.id_product_event',
                         'contihogar_product_shop.with_shipping_cost',
                         'contihogar_product.reference', 
                         'contihogar_product_lang.name as product', 

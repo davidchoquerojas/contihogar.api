@@ -78,8 +78,6 @@ class SupplierController extends Controller
             $mAddress = $this->obtenerEntityAddress($oAddress);
             $mAddress->save();
 
-            return response()->json($mAddress, 200);
-
             $oSupplierMaufacturers = $oSupplier["SupplierMaufacturer"];
             foreach($oSupplierMaufacturers as $oSupplierMaufacturer){
                 $id_manufacturer = $oSupplierMaufacturer["id_manufacturer"];
@@ -121,7 +119,11 @@ class SupplierController extends Controller
                 $mSupplierZoneDelivery->save();
             }
 
-
+            $oSupplierConfig = new SupplierConfigController();
+            $oSupplierConfig->save();
+            
+            return response()->json($mSupplier, 200);
+            
         }catch(Exeptions $e){            
             return response()->json($e, 500);
         }

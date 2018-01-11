@@ -56,6 +56,8 @@ Route::post('product/listarMerge','ProductController@mergeUpload');
 Route::post('product/shippingCost','ProductController@getShippingCostById');
 Route::resource('product', 'ProductController');
 
+Route::resource('productEvent', 'ProductEventController');
+
 Route::resource('modelo', 'ModelController');
 
 Route::resource('image', 'ImageController');

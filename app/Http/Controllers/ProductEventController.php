@@ -38,6 +38,19 @@ class ProductEventController extends Controller
     public function store(Request $request)
     {
         //
+        $listProductEvent = $request["product_event"];
+        foreach($listProductEvent as $oProductEvent){
+            $mProductEvent = $oProductEvent;
+            $mProductEvent["price_impact"] = $oProductEvent["price"];
+            $mProductEvent["cost_impact"] = $oProductEvent["wholesale_price"];
+            if(isset($oProductEvent["new_reduction"]))
+                $mProductEvent["tax_price_impact"] = $oProductEvent["new_reduction"];
+            if(isset($oProductEvent["unid_sale_cal"]))
+                $mProductEvent["tax_cost_impact"] = $oProductEvent["unid_sale_cal"];
+
+            $this->save($mProductEvent,$oProductEvent["id_product"],false);
+        }
+        return response()->json(array('respnse'=>true), 200);
     }
 
     /**
@@ -102,16 +115,24 @@ class ProductEventController extends Controller
 
         //var_dump($mProductEvent);
         $mProductEvent->id_product = $id_product;
-        $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
-        $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
+        if(isset($oProductEvent["price_start_date"]))
+            $mProductEvent->price_start_date = Carbon::parse($oProductEvent["price_start_date"]);
+        if(isset($oProductEvent["price_end_date"]))
+            $mProductEvent->price_end_date = Carbon::parse($oProductEvent["price_end_date"]);
         $mProductEvent->price_impact = $oProductEvent["price_impact"];
         $mProductEvent->cost_impact = $oProductEvent["cost_impact"];
-        $mProductEvent->event_price = $oProductEvent["event_price"];
-        $mProductEvent->event_cost = $oProductEvent["event_cost"];
-        $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
-        $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
-        $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
-        $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
+        if(isset($oProductEvent["event_price"]))
+            $mProductEvent->event_price = $oProductEvent["event_price"];
+        if(isset($oProductEvent["event_cost"]))
+            $mProductEvent->event_cost = $oProductEvent["event_cost"];
+        if(isset($oProductEvent["cost_start_date"]))
+            $mProductEvent->cost_start_date = Carbon::parse($oProductEvent["cost_start_date"]);
+        if(isset($oProductEvent["cost_end_date"]))
+            $mProductEvent->cost_end_date = Carbon::parse($oProductEvent["cost_end_date"]);
+        if(isset($oProductEvent["tax_price_impact"]))
+            $mProductEvent->tax_price_impact = $oProductEvent["tax_price_impact"];
+        if(isset($oProductEvent["tax_cost_impact"]))
+            $mProductEvent->tax_cost_impact = $oProductEvent["tax_cost_impact"];
         $mProductEvent->save();
     }
 }
