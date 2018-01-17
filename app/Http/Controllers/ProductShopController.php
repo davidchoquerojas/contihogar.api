@@ -76,6 +76,9 @@ class ProductShopController extends Controller
     public function update(Request $request, $id)
     {
         //
+        $mProductShop = ProductShop::find($id);
+        $mProductShop->active = $request["active"];
+        $mProductShop->save();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\CategoryProduct;
 
 class CategoryProductController extends Controller
 {
@@ -80,5 +81,26 @@ class CategoryProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+    
+    /**
+     * Inserta o actualiza ProductCategory
+     * 
+     * @param App\CategoryProduct $listCategoryProduct
+     * @param int $id_product 
+     * @param bool $isNew
+     * @return void
+     */
+    public function save($listCategoryProduct,$id_product,$isNew){
+        if(!$isNew) {
+            CategoryProduct::where('id_product', '=', $id_product)->delete();
+        }
+        foreach($listCategoryProduct as $key => $oCategoryProduct){
+            $mCategoryProduct = new CategoryProduct();
+            $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
+            $mCategoryProduct->id_product =  $id_product;
+            $mCategoryProduct->position = $key;
+            $mCategoryProduct->save();
+        }
     }
 }

@@ -102,8 +102,8 @@ class ProductController extends Controller
             $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,true);
 
             //Grabar CategoryProduct
-            $listCategoryProduct = $oProduct["Product"]["CategoryProduct"];
-            $this->grabarProductCategory($listCategoryProduct,$mProduct->id_product,true);
+            $mCategoryProduct = new CategoryProductController();
+            $mCategoryProduct->save($oProduct["Product"]["CategoryProduct"],$mProduct->id_product,true);
 
             //Grabar ProductEvent
             $mProductEvent = new ProductEventController();
@@ -112,9 +112,11 @@ class ProductController extends Controller
             //Agregar Product Item
             $oProductItems = $oProduct["Product"]["ProductItem"];
             $this->grabarProductItem($oProductItems,$mProduct->id_product,true);
+
             //Grabar Modelo y Modelo Producto
-            $oModelos = $oProduct["Product"]["ModelProduct"];
-            $this->grabarProductModel($oModelos,$mProduct->id_product,true);
+            $mModelProduct = new ModelProductController();
+            $mModelProduct->save($oProduct["Product"]["ModelProduct"],$mProduct->id_product,true);
+
             //Grabar Categoria Cross
             $oProductCrossCategorys = $oProduct["Product"]["ProductCrossCategory"];
             $this->grabarProductCrossCategory($oProductCrossCategorys,$mProduct->id_product,true);
@@ -148,7 +150,7 @@ class ProductController extends Controller
         //
         //var_dump($id);
         $oProduct = Product::find($id);
-        if($oProduct == NULL) return response()->json(array("NO DATA"), 200);
+        if($oProduct == NULL) return response()->json($oProduct, 200);
         
         $oProduct["ProductLang"] = ProductLang::where('id_product','=',$oProduct->id_product)->first();
         $oProduct["ProductEvent"] = \App\ProductEvent::where('id_product','=',$oProduct->id_product)->first();
@@ -185,6 +187,17 @@ class ProductController extends Controller
         //Actualizar Producto
         $oProduct = $request;
         $id_product = $id;
+
+        if($oProduct["row_state"] == "change_state"){
+            $mProduct = Product::find($id_product);
+            $mProduct->active = $oProduct["active"];
+            $mProduct->save();
+
+            $mProductShop = new ProductShopController();
+            $mProductShop->update($request,$id_product);
+            
+            return response()->json($mProduct, 200);
+        }
         
         $mProduct = Product::find($id_product);
         $mProduct->id_supplier = $oProduct["id_supplier"];
@@ -197,16 +210,17 @@ class ProductController extends Controller
         
 
         //Actualizar ProductLang
+
         $oProductLang = $oProduct["ProductLang"];
         $this->grabarProductLang($oProductLang,$id_product,false);
 
         //Actuaizar Category Product
-        $listCategoryProduct = $oProduct["CategoryProduct"];
-        $this->grabarProductCategory($listCategoryProduct,$id_product,false);
+        $mCategoryProduct = new CategoryProductController();
+        $mCategoryProduct->save($oProduct["CategoryProduct"],$id_product,false);
 
         //Actualizar Product Event
         $oProductEvent = new ProductEventController();
-        $oProductEvent->save($oProduct["ProductEvent"],false);
+        $oProductEvent->save($oProduct["ProductEvent"],$id_product,false);
         
         //$mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
         $oProductShop = new ProductShopController();
@@ -223,14 +237,13 @@ class ProductController extends Controller
         $this->grabarProductItem($oProductItems,$id_product,false);
 
         //Actualizar Model Product
-        $oModelos = $oProduct["ModelProduct"];
-        $this->grabarProductModel($oModelos,$id_product,false);
-
+        $mModelProduct = new ModelProductController();
+        $mModelProduct->save($oProduct["ModelProduct"],$id_product,false);
         //Grabar Categoria Cross
         $oProductCrossCategorys = $oProduct["ProductCrossCategory"];
         $this->grabarProductCrossCategory($oProductCrossCategorys,$id_product,false);
         
-        return response()->json($id, 200);
+        return response()->json($mProduct, 200);
     }
 
     /**
@@ -304,32 +317,6 @@ class ProductController extends Controller
         }
     }
     /**
-     * Inserta o actualiza los ProductModel
-     * 
-     * @param App\ModelProduct oModelos
-     * @param int $id_product
-     * @param boolean isNew
-     * @return "void"
-     */
-    public function grabarProductModel($oModelos,$id_product,$isNew){
-
-        if(!$isNew){
-            CategoryProduct::where('id_product', '=', $id_product)->delete();
-        }
-        foreach($oModelos as $oModelo){
-            if(intval($oModelo["id_model"]) == 0){
-                $mModels = new Models();
-                $mModels->nombre = $oModelo["model"]["nombre"];
-                $mModels->save();
-                $oModelo["id_model"] = $mModels->id_model;
-            }
-            $mModelProduct = new ModelProduct();
-            $mModelProduct->id_model = $oModelo["id_model"];
-            $mModelProduct->id_product = $id_product;
-            $mModelProduct->save();
-        }
-    }
-    /**
      * Inserta o actualiza los ProductCrossCategory
      * 
      * @param App\ProductCrossCategory $oProductCrossCategorys,
@@ -376,27 +363,6 @@ class ProductController extends Controller
         $mProductLang->available_later = "";
         $mProductLang->inst_message = $oProductLang["inst_message"];
         $mProductLang->save();
-    }
-
-    /**
-     * Inserta o actualiza ProductCategory
-     * 
-     * @param App\CategoryProduct $listCategoryProduct
-     * @param int $id_product 
-     * @param bool $isNew
-     * @return void
-     */
-    public function grabarProductCategory($listCategoryProduct,$id_product,$isNew){
-        if(!$isNew) {
-            CategoryProduct::where('id_product', '=', $id_product)->delete();
-        }
-        foreach($listCategoryProduct as $oCategoryProduct){
-            $mCategoryProduct = new CategoryProduct();
-            $mCategoryProduct->id_category = $oCategoryProduct["id_category"];
-            $mCategoryProduct->id_product =  $id_product;
-            $mCategoryProduct->position++;
-            $mCategoryProduct->save();
-        }
     }
 
     /**
@@ -476,6 +442,10 @@ class ProductController extends Controller
             
             return response()->json($listProduct, 200);
         }
+    }
+    public function getProductById(Request $request){
+        $listProduct = $this->listProductsById(array((int)$request["id_product"]));
+        return response()->json($listProduct,200);
     }
 
     private function listProductsById($id_products){

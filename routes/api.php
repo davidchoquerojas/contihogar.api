@@ -54,6 +54,7 @@ Route::get('product/getProductGrid','ProductController@getProductGrid');
 Route::post('product/store','ProductController@store');
 Route::post('product/listarMerge','ProductController@mergeUpload');
 Route::post('product/shippingCost','ProductController@getShippingCostById');
+Route::post('product/getById','ProductController@getProductById');
 Route::resource('product', 'ProductController');
 
 Route::resource('productEvent', 'ProductEventController');

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models;
+use App\ModelProduct;
 
 class ModelProductController extends Controller
 {
@@ -80,5 +82,31 @@ class ModelProductController extends Controller
     public function destroy($id)
     {
         //
+    }
+    /**
+     * Inserta o actualiza los ProductModel
+     * 
+     * @param App\ModelProduct oModelos
+     * @param int $id_product
+     * @param boolean isNew
+     * @return "void"
+     */
+    public function save($oModelos,$id_product,$isNew){
+
+        if(!$isNew){
+            ModelProduct::where('id_product', '=', $id_product)->delete();
+        }
+        foreach($oModelos as $oModelo){
+            if(intval($oModelo["id_model"]) == 0){
+                $mModels = new Models();
+                $mModels->nombre = $oModelo["model"]["nombre"];
+                $mModels->save();
+                $oModelo["id_model"] = $mModels->id_model;
+            }
+            $mModelProduct = new ModelProduct();
+            $mModelProduct->id_model = $oModelo["id_model"];
+            $mModelProduct->id_product = $id_product;
+            $mModelProduct->save();
+        }
     }
 }

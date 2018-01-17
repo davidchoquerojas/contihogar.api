@@ -93,6 +93,7 @@ class SupplierController extends Controller
                 $mSupplierManufacturer = new SupplierManufacturer();
                 $mSupplierManufacturer->id_supplier = $mSupplier->id_supplier;;
                 $mSupplierManufacturer->id_manufacturer = $id_manufacturer;
+                $mSupplierManufacturer->save();
             }
 
             $mAddressAlmacen = obtenerEntityAddress();
