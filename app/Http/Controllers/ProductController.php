@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Pagination\Paginator;
 use Carbon\Carbon;
 
 use App\Product;
@@ -30,6 +29,7 @@ class ProductController extends Controller
     public $id_shop = 1;
     public $id_attribute_group = 3;
     private $id_tax_rules_group = 1;
+    private $tax = 1.18;
     /**
      * Display a listing of the resource.
      *
@@ -51,18 +51,20 @@ class ProductController extends Controller
     {
         try{
             // Grabar Productos
+            //var_dump("aqui");
             $oProduct = $request->all();
             $oProductEvent = $oProduct["Product"]["ProductEvent"];
+            $oCategoryProduct = $oProduct["Product"]["CategoryProduct"];
 
             $mProduct = new Product();
             $mProduct->id_supplier = $oProduct["Product"]["id_supplier"];
             $mProduct->id_manufacturer = $oProduct["Product"]["id_manufacturer"];
-            $mProduct->id_category_default = 0;
+            $mProduct->id_category_default = (isset($oCategoryProduct[0]["id_category"]))?$oCategoryProduct[0]["id_category"]:0;
             $mProduct->id_shop_default = 1;
             $mProduct->id_tax_rules_group = 1;
             $mProduct->on_sale = 1;
             $mProduct->quantity = $oProduct["Product"]["quantity"];
-            $mProduct->price = $oProductEvent["price_impact"];
+            $mProduct->price = $oProductEvent["price_impact"] / $this->tax;
             $mProduct->wholesale_price = $oProductEvent["cost_impact"];
             $mProduct->additional_shipping_cost = 0;
             $mProduct->reference = $oProduct["Product"]["reference"];
@@ -103,7 +105,7 @@ class ProductController extends Controller
 
             //Grabar CategoryProduct
             $mCategoryProduct = new CategoryProductController();
-            $mCategoryProduct->save($oProduct["Product"]["CategoryProduct"],$mProduct->id_product,true);
+            $mCategoryProduct->save($oCategoryProduct,$mProduct->id_product,true);
 
             //Grabar ProductEvent
             $mProductEvent = new ProductEventController();
@@ -331,7 +333,7 @@ class ProductController extends Controller
         foreach($oProductCrossCategorys as $oProductCrossCategory){
             $mProductCrossCategory = new ProductCrossCategory();
             $mProductCrossCategory->id_product = $id_product;
-            $mProductCrossCategory->id_category = $oProductCrossCategory["id_categoria"];
+            $mProductCrossCategory->id_category = $oProductCrossCategory["id_category"];
             $mProductCrossCategory->save();
         }
     }

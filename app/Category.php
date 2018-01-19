@@ -13,6 +13,6 @@ class Category extends Model
 
     public function CategoryLang()
     {
-        return $this->hasOne('App\CategoryLang','id_category','id_category');
+        return $this->hasOne('App\CategoryLang','id_category','id_category')->where('id_lang', '=', 2);;
     }
 }

@@ -28,9 +28,11 @@ class CategoryController extends Controller
     public function index()
     {
         //
-        $oCategory = Category::with('CategoryLang')->where('level_depth','>','0')->orderBy('level_depth', 'asc')->get();
+        $listCategory = Category::with('CategoryLang')
+                            ->where('level_depth','>','0')
+                            ->orderBy('level_depth', 'asc')->get();
 
-        return response()->json($oCategory,200);
+        return response()->json($listCategory,200);
     }
 
     /**
