@@ -6,6 +6,13 @@ use Illuminate\Http\Request;
 use App\Supplier;
 use App\SupplierLang;
 use App\Address;
+use App\SupplierManufacturer;
+use App\Manufacturer;
+use App\SupplierContact;
+use App\SupplierZoneDelivery;
+use App\Province;
+use App\District;
+
 use Carbon\Carbon;
 
 
@@ -75,18 +82,21 @@ class SupplierController extends Controller
 
             $oAddress = $oSupplier["Address"];
             $oAddress["id_supplier"] = $mSupplier->id_supplier;
+
             $mAddress = $this->obtenerEntityAddress($oAddress);
             $mAddress->save();
 
-            $oSupplierMaufacturers = $oSupplier["SupplierMaufacturer"];
+            $oSupplierMaufacturers = $oSupplier["SupplierManufacturer"];
+            
             foreach($oSupplierMaufacturers as $oSupplierMaufacturer){
                 $id_manufacturer = $oSupplierMaufacturer["id_manufacturer"];
                 if(intval($id_manufacturer) == 0){
                     $mManufacturer = new Manufacturer();
-                    $mManufacturer->name = $oSupplierMaufacturer;
+                    $mManufacturer->name = $oSupplierMaufacturer["Manufacturer"]["name"];
                     $mManufacturer->date_add = Carbon::now();
                     $mManufacturer->date_upd = Carbon::now();
                     $mManufacturer->active = 1;
+                    $mManufacturer->save();
 
                     $id_manufacturer = $mManufacturer->id_manufacturer;
                 }
@@ -96,8 +106,9 @@ class SupplierController extends Controller
                 $mSupplierManufacturer->save();
             }
 
-            $mAddressAlmacen = obtenerEntityAddress();
-            $mAddressAlmacen->save();
+            /*$oAddress["id_manufac"] = $mSupplier->id_supplier;
+            $mAddressAlmacen = $this->obtenerEntityAddress($oAddress);
+            $mAddressAlmacen->save();*/
 
             $oSupplierContacts = $oSupplier["SupplierContact"];
             foreach($oSupplierContacts as $oSupplierContact){
@@ -110,18 +121,54 @@ class SupplierController extends Controller
                 $mSupplierContact->save();
             }
 
-            $oSupplierZoneDeliverys = $oSupplier["SupplierZoneDelivery"];
-            foreach($oSupplierZoneDelivery as $oSupplierZoneDelivery){
-                $mSupplierZoneDelivery = new SupplierZoneDelivery();
-                $mSupplierZoneDelivery->id_supplier = $mSupplier->id_supplier;
-                $mSupplierZoneDelivery->id_state = $oSupplierZoneDelivery["id_state"];
-                $mSupplierZoneDelivery->id_provincia = $oSupplierZoneDelivery["id_provincia"];
-                $mSupplierZoneDelivery->id_distrito = $oSupplierZoneDelivery["id_distrito"];
-                $mSupplierZoneDelivery->save();
+            $oSupplierZoneDeliverys = $oSupplier["SupplierZoneDelevery"];
+            foreach($oSupplierZoneDeliverys as $oSupplierZoneDelivery){
+                if($oSupplierZoneDelivery["id_state"] > 0 && $oSupplierZoneDelivery["id_provincia"] == 0 && $oSupplierZoneDelivery["id_distrito"] == 0)
+                {
+                    $listProvince = Province::where('id_departamento','=',$oSupplierZoneDelivery["id_state"])->get();
+                    foreach ($listProvince as $key => $province) {
+                        $listDistrinct = District::where('id_provincia','=',$province->id_provincia)->get();
+                        foreach ($listDistrinct as $key => $district) {
+                            $mSupplierZoneDelivery = new SupplierZoneDelivery();
+                            $mSupplierZoneDelivery->id_supplier = $mSupplier->id_supplier;
+
+                            $mSupplierZoneDelivery->id_departamento= $oSupplierZoneDelivery["id_state"];
+                            $mSupplierZoneDelivery->id_provincia = $province->id_provincia;
+                            $mSupplierZoneDelivery->id_distrito = $district->id_distrito;
+                            $mSupplierZoneDelivery->active = 1;
+                            $mSupplierZoneDelivery->field_concat = $mSupplierZoneDelivery->id_departamento."_".$mSupplierZoneDelivery->id_provincia."_".$mSupplierZoneDelivery->id_distrito;
+                            $mSupplierZoneDelivery->save();
+                        }
+                    }
+                }else if($oSupplierZoneDelivery["id_state"] > 0 && $oSupplierZoneDelivery["id_provincia"] > 0 && $oSupplierZoneDelivery["id_distrito"] == 0){
+                    $listDistrinct = District::where('id_provincia','=',$oSupplierZoneDelivery["id_provincia"])->get();
+                    foreach ($listDistrinct as $key => $district) {
+                        $mSupplierZoneDelivery = new SupplierZoneDelivery();
+                        $mSupplierZoneDelivery->id_supplier = $mSupplier->id_supplier;
+
+                        $mSupplierZoneDelivery->id_departamento= $oSupplierZoneDelivery["id_state"];
+                        $mSupplierZoneDelivery->id_provincia = $oSupplierZoneDelivery["id_provincia"];
+                        $mSupplierZoneDelivery->id_distrito = $district->id_distrito;
+                        $mSupplierZoneDelivery->active = 1;
+                        $mSupplierZoneDelivery->field_concat = $mSupplierZoneDelivery->id_departamento."_".$mSupplierZoneDelivery->id_provincia."_".$mSupplierZoneDelivery->id_distrito;
+                        $mSupplierZoneDelivery->save();
+                    }
+                }else{
+                    $mSupplierZoneDelivery = new SupplierZoneDelivery();
+                    $mSupplierZoneDelivery->id_supplier = $mSupplier->id_supplier;
+
+                    $mSupplierZoneDelivery->id_departamento= $oSupplierZoneDelivery["id_state"];
+                    $mSupplierZoneDelivery->id_provincia = $oSupplierZoneDelivery["id_provincia"];
+                    $mSupplierZoneDelivery->id_distrito = $oSupplierZoneDelivery["id_distrito"];
+                    $mSupplierZoneDelivery->active = 1;
+                    $mSupplierZoneDelivery->field_concat = $mSupplierZoneDelivery->id_departamento."_".$mSupplierZoneDelivery->id_provincia."_".$mSupplierZoneDelivery->id_distrito;
+                    $mSupplierZoneDelivery->save();
+                }
             }
 
-            $oSupplierConfig = new SupplierConfigController();
-            $oSupplierConfig->save();
+            $oSupplierConfig = $oSupplier["SupplierConfig"];
+            $mSupplierConfig = new SupplierConfigController();
+            $mSupplierConfig->save($oSupplierConfig);
             
             return response()->json($mSupplier, 200);
             
