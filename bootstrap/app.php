@@ -52,4 +52,10 @@ $app->singleton(
 |
 */
 
+$app->middleware([
+    App\Http\Middleware\CorsMiddleware::class
+ ]);
+ 
+ $app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
+
 return $app;
