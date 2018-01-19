@@ -51,10 +51,10 @@ Route::post('category/store','CategoryController@store');
 
 
 Route::get('product/getProductGrid','ProductController@getProductGrid');
-Route::post('product/store','ProductController@store');
-/*Route::middleware('cors')->post('product/store', function (Request $request) {
+//Route::post('product/store','ProductController@store');
+Route::middleware('cors')->post('product/store', function (Request $request) {
     Route::post('product/store','ProductController@store');
-});*/
+});
 
 Route::post('product/listarMerge','ProductController@mergeUpload');
 Route::post('product/shippingCost','ProductController@getShippingCostById');

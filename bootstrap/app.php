@@ -51,11 +51,4 @@ $app->singleton(
 | from the actual running of the application and sending responses.
 |
 */
-
-$app->middleware([
-    App\Http\Middleware\CorsMiddleware::class
- ]);
- 
- $app->register(App\Providers\CatchAllOptionsRequestsProvider::class);
-
 return $app;
