@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\layeredPriceIndex;
+use App\LayeredPriceIndex;
 
 class LayeredPriceIndexController extends Controller
 {
@@ -90,9 +90,9 @@ class LayeredPriceIndexController extends Controller
 
         $mLayeredPriceIndex = NULL;
         if(!$isNew)
-            $mLayeredPriceIndex = layeredPriceIndex::where('id_product','=',$id_product)->first(); //PlayeredPriceIndex::find($id);
+            $mLayeredPriceIndex = LayeredPriceIndex::where('id_product','=',$id_product)->first(); //PlayeredPriceIndex::find($id);
         else
-            $mLayeredPriceIndex = new layeredPriceIndex();
+            $mLayeredPriceIndex = new LayeredPriceIndex();
 
         $mLayeredPriceIndex->id_product = $id_product;
         $mLayeredPriceIndex->id_currency = $this->id_currency;
