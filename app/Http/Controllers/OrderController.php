@@ -89,4 +89,6 @@ class OrderController extends Controller
 
         return response()->json($resultTotal, 200);
     }
+
+    
 }
