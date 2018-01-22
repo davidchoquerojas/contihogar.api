@@ -29,6 +29,7 @@ Route::middleware('api')->post('/supplier/store', function (Request $request) {
 
 Route::resource('attribute', 'AttributeController');
 
+Route::post('productAttribute/getByIdProduct','ProductAttributeController@getProductAttributeByIdProduct');
 Route::resource('productAttibute', 'ProductAttributeController');
 Route::post('productAttibute/store','ProductAttributeController@store');
 
@@ -77,3 +78,6 @@ Route::get('order/productTop','OrderController@getProductTop');
 Route::get('order/supplierTop','OrderController@getSupplierTop');
 Route::get('order/categoryTop','OrderController@getCategoryTop');
 Route::get('order/total','OrderController@getTotal');
+
+Route::get('order/operation','OrderController@getGridOperation');
+Route::post('order/changeProduct','OrderController@changeProduct');

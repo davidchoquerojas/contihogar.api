@@ -102,12 +102,7 @@ class ProductAttributeController extends Controller
     {
         $id_product = $id;
         //
-        $oAttributes = DB::table('contihogar_product_attribute_combination')
-                            ->leftJoin('contihogar_product_attribute', 'contihogar_product_attribute_combination.id_product_attribute', '=','contihogar_product_attribute.id_product_attribute')
-                            ->leftJoin('contihogar_attribute', 'contihogar_product_attribute_combination.id_attribute', '=', 'contihogar_attribute.id_attribute')
-                            ->where('contihogar_product_attribute.id_product', '=', $id_product)
-                            ->where('contihogar_attribute.id_attribute_group', '=', $this->id_attribute_group)
-                            ->get();
+        $oAttributes =  $this->listProductAttributeByProduct($id_product);
         //var_dump($oAttributes);
         foreach($oAttributes as $key=>$oAttribute){
             $oProductImages = ProductAttributeImage::where('id_product_attribute','=',$oAttribute->id_product_attribute)->get();
@@ -167,5 +162,23 @@ class ProductAttributeController extends Controller
                 $strUrl.= substr($id_image,$_i,1)."/";
         }
         return $strUrl;
+    }
+    private function listProductAttributeByProduct($id_product){
+        return DB::table('contihogar_product_attribute_combination')
+                ->leftJoin('contihogar_product_attribute', 'contihogar_product_attribute_combination.id_product_attribute', '=','contihogar_product_attribute.id_product_attribute')
+                ->leftJoin('contihogar_attribute', 'contihogar_product_attribute_combination.id_attribute', '=', 'contihogar_attribute.id_attribute')
+                ->leftJoin('contihogar_attribute_lang','contihogar_attribute_lang.id_attribute','=','contihogar_attribute.id_attribute')
+                ->where('contihogar_product_attribute.id_product', '=', $id_product)
+                ->where('contihogar_attribute.id_attribute_group', '=', $this->id_attribute_group)
+                ->select(
+                    'contihogar_product_attribute.id_product_attribute',
+                    'contihogar_attribute.id_attribute',
+                    'contihogar_product_attribute.id_product',
+                    'contihogar_attribute_lang.name'
+                )->get();
+    }
+
+    public function getProductAttributeByIdProduct(Request $request){
+        return $this->listProductAttributeByProduct($request["id_product"]);
     }
 }
