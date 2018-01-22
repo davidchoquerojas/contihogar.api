@@ -64,8 +64,8 @@ class ProductController extends Controller
             $mProduct->id_tax_rules_group = 1;
             $mProduct->on_sale = 1;
             $mProduct->quantity = $oProduct["Product"]["quantity"];
-            $mProduct->price = $oProductEvent["price_impact"] / $this->tax;
-            $mProduct->wholesale_price = $oProductEvent["cost_impact"];
+            $mProduct->price = (($oProductEvent["price_start_date"] == NULL)? $oProductEvent["price_impact"] :$oProductEvent["event_price"]) / $this->tax;
+            $mProduct->wholesale_price = ($oProductEvent["cost_start_date"] == NULL)? $oProductEvent["cost_impact"]:$oProductEvent["event_cost"];
             $mProduct->additional_shipping_cost = 0;
             $mProduct->reference = $oProduct["Product"]["reference"];
             $mProduct->active = 0;
@@ -188,6 +188,7 @@ class ProductController extends Controller
         //
         //Actualizar Producto
         $oProduct = $request;
+        $oProductEvent =  $oProduct["ProductEvent"];
         $id_product = $id;
 
         if($oProduct["row_state"] == "change_state"){
@@ -207,7 +208,8 @@ class ProductController extends Controller
         $mProduct->quantity = $oProduct["quantity"];
         $mProduct->condition = $oProduct["condition"];
         $mProduct->reference = $oProduct["reference"];
-        $mProduct->price = $oProduct["ProductEvent"]['price_impact'];
+        $mProduct->price = (($oProductEvent["price_start_date"] == NULL)? $oProductEvent["price_impact"] :$oProductEvent["event_price"]) / $this->tax;
+        $mProduct->wholesale_price = ($oProductEvent["cost_start_date"] == NULL)? $oProductEvent["cost_impact"]:$oProductEvent["event_cost"];
         $mProduct->save();
         
 
