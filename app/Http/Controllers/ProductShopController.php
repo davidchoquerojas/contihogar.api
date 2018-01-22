@@ -104,7 +104,7 @@ class ProductShopController extends Controller
         $mProductShop->id_tax_rules_group = $this->id_tax_rules_group;
         $mProductShop->price = $oProduct->price;
         $mProductShop->wholesale_price = $oProduct->wholesale_price;
-        //$mProductShop->
+        $mProductShop->id_category_default = $oProduct->id_category_default;
         $mProductShop->date_add = Carbon::now();
         $mProductShop->date_upd = Carbon::now();
         $mProductShop->save();
