@@ -105,6 +105,8 @@ class ProductEventController extends Controller
      * @return void
      */
     public function save($oProductEvent,$id_product,$isNew){
+        echo json_encode($oProductEvent);
+        die();
         //
         $id = $oProductEvent["id_product_event"];
         $mProductEvent = NULL;
