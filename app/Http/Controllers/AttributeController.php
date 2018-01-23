@@ -23,6 +23,13 @@ class AttributeController extends Controller
     public function index()
     {
         //
+        $listAttribute = DB::table('contihogar_attribute')
+                            ->join('contihogar_attribute_lang','contihogar_attribute_lang.id_attribute','=','contihogar_attribute.id_attribute')
+                            ->where('contihogar_attribute.id_attribute_group','=',$this->id_attribute_group)
+                            ->get();
+        
+        return response()->json($listAttribute, 200);
+        
     }
 
     /**
