@@ -9,6 +9,8 @@ use App\AttributeLang;
 use App\AttributeShop;
 use App\ProductAttribute;
 
+use DB;
+
 
 class AttributeController extends Controller
 {
