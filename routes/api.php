@@ -31,8 +31,8 @@ Route::resource('customer','CustomerController');
 Route::resource('attribute', 'AttributeController');
 
 Route::post('productAttribute/getByIdProduct','ProductAttributeController@getProductAttributeByIdProduct');
-Route::resource('productAttibute', 'ProductAttributeController');
-Route::post('productAttibute/store','ProductAttributeController@store');
+Route::resource('productAttribute', 'ProductAttributeController');
+Route::post('productAttribute/store','ProductAttributeController@store');
 
 
 Route::resource('productAttributeImage', 'ProductAttributeImageController');
