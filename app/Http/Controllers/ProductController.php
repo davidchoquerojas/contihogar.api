@@ -223,8 +223,8 @@ class ProductController extends Controller
         $mCategoryProduct->save($oProduct["CategoryProduct"],$id_product,false);
 
         //Actualizar Product Event
-        $oProductEvent = new ProductEventController();
-        $oProductEvent->save($oProduct["ProductEvent"],$id_product,false);
+        $mProductEvent = new ProductEventController();
+        $mProductEvent->save($oProduct["ProductEvent"],$id_product,false);
         
         //$mProductEvent = ProductEvent::find($oProductEvent["id_product_event"]);
         $oProductShop = new ProductShopController();
