@@ -30,8 +30,8 @@ Route::resource('customer','CustomerController');
 
 Route::resource('attribute', 'AttributeController');
 
-Route::post('productAttribute/getByIdProduct','ProductAttributeController@getProductAttributeByIdProduct');
 Route::resource('productAttribute', 'ProductAttributeController');
+Route::post('productAttribute/getByIdProduct','ProductAttributeController@getProductAttributeByIdProduct');
 Route::post('productAttribute/store','ProductAttributeController@store');
 
 
