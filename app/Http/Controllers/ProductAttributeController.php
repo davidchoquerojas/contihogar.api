@@ -163,6 +163,7 @@ class ProductAttributeController extends Controller
                 ->select(
                     'contihogar_product_attribute.id_product_attribute',
                     'contihogar_attribute.id_attribute',
+                    'contihogar_attribute.color',
                     'contihogar_product_attribute.id_product',
                     'contihogar_attribute_lang.name'
                 )->get();
