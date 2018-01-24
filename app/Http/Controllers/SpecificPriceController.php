@@ -86,6 +86,11 @@ class SpecificPriceController extends Controller
 
     public function save($id_product,$id_shop,$descount,$from,$to,$isNew){
         //
+        if($from == NULL || $to == NULL){
+            $to = Carbon::minValue();
+            $from = Carbon::minValue();
+        }  
+        
         $mSpecificPrice = NULL;
         if(!$isNew)
             $mSpecificPrice = SpecificPrice::where('id_product','=',$id_product)->first();

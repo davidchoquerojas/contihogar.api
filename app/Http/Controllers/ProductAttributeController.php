@@ -12,6 +12,9 @@ use App\Image;
 use App\ImageShop;
 use App\ImageLang;
 
+use App\StockAvailable;
+use App\ProductAttributeShop;
+
 use DB;
 
 class ProductAttributeController extends Controller
@@ -154,6 +157,8 @@ class ProductAttributeController extends Controller
             ImageLang::where('id_image','=',$mProductAttributeImage->id_image)->delete();
             ProductAttributeImage::where('id_image','=',$mProductAttributeImage)->delete();
         }
+        StockAvailable::where('id_product_attribute','=',$id_product_attribute)->delete();
+        ProductAttributeShop::where('id_product_attribute','=',$id_product_attribute)->delete();
         ProductAttributeCombination::where('id_product_attribute','=',$id_product_attribute)->delete();
         ProductAttribute::destroy($id_product_attribute);
 

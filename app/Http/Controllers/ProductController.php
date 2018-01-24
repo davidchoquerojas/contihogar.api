@@ -98,7 +98,7 @@ class ProductController extends Controller
             $oProductShop->save($mProduct,true);
 
             $oSpecificPrice = new SpecificPriceController();
-            $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],Carbon::minValue(),Carbon::minValue(),true);
+            $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],$oProductEvent["price_start_date"],$oProductEvent["price_end_date"],true);
 
             $oLayeredPriceIndex = new LayeredPriceIndexController();
             $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,true);
@@ -231,7 +231,7 @@ class ProductController extends Controller
         $oProductShop->save($mProduct,false);
 
         $oSpecificPrice = new SpecificPriceController();
-        $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProduct["ProductEvent"]["tax_price_impact"],Carbon::minValue(),Carbon::minValue(),false);
+        $oSpecificPrice->save($mProduct->id_product,$this->id_shop,$oProductEvent["tax_price_impact"],$oProductEvent["price_start_date"],$oProductEvent["price_end_date"],false);
 
         $oLayeredPriceIndex = new LayeredPriceIndexController();
         $oLayeredPriceIndex->save($mProduct->id_product,$mProduct->price,false);
