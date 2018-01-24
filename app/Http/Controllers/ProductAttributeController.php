@@ -51,45 +51,35 @@ class ProductAttributeController extends Controller
         //
         //var_dump("aqui_primero");
         $oAttribute = $request["Attribute"];
-        if(intval($oAttribute["id_attribute"]) > 0){
-            //var_dump('aqui');
-            $mAttribute = Attribute::find($oAttribute["id_attribute"]);
-            $mAttribute->color = $oAttribute["color"];
-            $mAttribute->save();
-            
-            return response()->json($mAttribute, 200);
-            
-        }else{
-            //var_dump('aqii12');
-            $mAttribute = new AttributeController();
-            $oAttribute = $mAttribute->save($oAttribute);
 
-            $oProductAttribute = $request["ProductAttribute"];
-            $mProductAttribute = new ProductAttribute();
-            $mProductAttribute->wholesale_price = $oProductAttribute["wholesale_price"];
-            $mProductAttribute->price = $oProductAttribute["price"]; 
-            $mProductAttribute->ecotax = $oProductAttribute["ecotax"]; 
-            $mProductAttribute->quantity = $oProductAttribute["quantity"]; 
-            $mProductAttribute->weight = $oProductAttribute["weight"]; 
-            $mProductAttribute->unit_price_impact = $oProductAttribute["unit_price_impact"]; 
-            $mProductAttribute->default_on = $oProductAttribute["default_on"]; 
-            $mProductAttribute->minimal_quantity = $oProductAttribute["minimal_quantity"]; 
-            $mProductAttribute->id_product = $oProductAttribute["id_product"];
-            $mProductAttribute->save();
-    
-            $mProductAttributeCombination = new ProductAttributeCombination();
-            $mProductAttributeCombination->id_attribute = $oAttribute->id_attribute;
-            $mProductAttributeCombination->id_product_attribute = $mProductAttribute->id_product_attribute;
-            $mProductAttributeCombination->save();
+        $mAttribute = new AttributeController();
+        $oAttribute = $mAttribute->save($oAttribute);
 
-            $mStockAvailable = new StockAvailableController();
-            $mStockAvailable->create($mProductAttribute);
+        $oProductAttribute = $request["ProductAttribute"];
+        $mProductAttribute = new ProductAttribute();
+        $mProductAttribute->wholesale_price = $oProductAttribute["wholesale_price"];
+        $mProductAttribute->price = $oProductAttribute["price"]; 
+        $mProductAttribute->ecotax = $oProductAttribute["ecotax"]; 
+        $mProductAttribute->quantity = $oProductAttribute["quantity"]; 
+        $mProductAttribute->weight = $oProductAttribute["weight"]; 
+        $mProductAttribute->unit_price_impact = $oProductAttribute["unit_price_impact"]; 
+        $mProductAttribute->default_on = $oProductAttribute["default_on"]; 
+        $mProductAttribute->minimal_quantity = $oProductAttribute["minimal_quantity"]; 
+        $mProductAttribute->id_product = $oProductAttribute["id_product"];
+        $mProductAttribute->save();
 
-            $mProductAttributeShop = new ProductAttributeShopController();
-            $mProductAttributeShop->create($mProductAttribute->id_product,$mProductAttribute->id_product_attribute,$this->id_shop);
+        $mProductAttributeCombination = new ProductAttributeCombination();
+        $mProductAttributeCombination->id_attribute = $oAttribute->id_attribute;
+        $mProductAttributeCombination->id_product_attribute = $mProductAttribute->id_product_attribute;
+        $mProductAttributeCombination->save();
 
-            return response()->json($oAttribute, 200);
-        }
+        $mStockAvailable = new StockAvailableController();
+        $mStockAvailable->create($mProductAttribute);
+
+        $mProductAttributeShop = new ProductAttributeShopController();
+        $mProductAttributeShop->create($mProductAttribute->id_product,$mProductAttribute->id_product_attribute,$this->id_shop);
+
+        return response()->json($mProductAttribute, 200);
     }
 
     /**
