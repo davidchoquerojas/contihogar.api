@@ -99,12 +99,7 @@ class AttributeController extends Controller
     {
         //
         try{
-            $id_attribute = $id;
-            $oProductAttributeCombinations = ProductAttributeCombination::where('id_attribute','=',$id_attribute)->get();
-            foreach($oProductAttributeCombinations as $oProductAttributeCombination){
-                Attribute::destroy($oProductAttributeCombination["id_attribute"]);
-                ProductAttribute::destroy($oProductAttributeCombination["id_product_attribute"]);
-            }
+            Attribute::destroy($oProductAttributeCombination["id_attribute"]);
             return response()->json(array("res"=>true), 200);     
         }catch(Exeption $ex){
             return response()->json($ex, 200);     
@@ -113,7 +108,7 @@ class AttributeController extends Controller
 
     public function save($oAttribute){
 
-        if(!Attribute::where('id_attribute_group','=',$this->id_attribute_group)->where('color','=',$oAttribute['color'])->exists()){
+        if(!Attribute::where('id_attribute_group','=',$this->id_attribute_group)->where('color','=',trim($oAttribute['color']))->exists()){
             $position = (Attribute::where('id_attribute_group','=',$this->id_attribute_group)->max('position'))+1;
 
             $mAttribute = new Attribute();
@@ -125,7 +120,7 @@ class AttributeController extends Controller
             $mAttributeLang = new AttributeLang();
             $mAttributeLang->id_attribute = $mAttribute->id_attribute;
             $mAttributeLang->id_lang = $this->id_lang;
-            $mAttributeLang->name = $oAttribute["color"];
+            $mAttributeLang->name = $oAttribute["name"];
             $mAttributeLang->save();
             
             $mAttributeShop = new AttributeShop();
@@ -135,7 +130,7 @@ class AttributeController extends Controller
 
             return $mAttribute;
         }else{
-            return Attribute::where('id_attribute_group','=',$this->id_attribute_group)->where('color','=',$oAttribute['color'])->first();
+            return Attribute::where('id_attribute_group','=',$this->id_attribute_group)->where('color','=',trim($oAttribute['color']))->first();
         }
     }
 }
