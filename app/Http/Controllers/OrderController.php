@@ -131,6 +131,7 @@ class OrderController extends Controller
                             END as "payment_letter"'),
                             'contihogar_orders.id_customer',
                             'contihogar_orders.id_carrier',
+                            'contihogar_orders.id_address_delivery',
                             'contihogar_carrier.name as carrier',
                             DB::raw('concat(contihogar_carrier.name," - S/.", 0.00) as carrier_cost'),
                             DB::raw('"Cliente Cordinado" as "order_state"'),
