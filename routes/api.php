@@ -86,3 +86,4 @@ Route::get('order/total','OrderController@getTotal');
 
 Route::get('order/operation','OrderController@getGridOperation');
 Route::post('order/changeProduct','OrderController@changeProduct');
+Route::post('order/getCostShipping','OrderController@calcShippingCost');

@@ -11,6 +11,7 @@ use Carbon\Carbon;
 class OrderController extends Controller
 {
     private $valid = 1;
+    private $tax_payout_passarella = 0.95;
     //
     public function getProductTop(){
 
@@ -122,6 +123,9 @@ class OrderController extends Controller
                             'contihogar_order_detail.purchase_supplier_price',
                             'contihogar_order_detail.original_product_price',
                             'contihogar_order_detail.original_wholesale_price',
+                            'contihogar_orders.total_shipping',
+                            'contihogar_orders.total_shipping_tax_incl',
+                            'contihogar_orders.total_shipping_tax_excl',
                             DB::raw('0 cupon'),
                             'contihogar_orders.payment',
                             DB::raw('CASE contihogar_orders.payment 
@@ -157,4 +161,82 @@ class OrderController extends Controller
         return response()->json(array("response"=>true), 200);
         
     }
+
+    public function calcShippingCost(Request $request){
+        $oAddress = $request["address"];
+        $oOrder = $request["order"];
+
+        $listOrderDetail = OrderDetail::where('id_order','=',$oOrder["id_order"])->get();
+        $shipping_cost = 0;
+        $id_carrier1 = 0;
+        $id_carrier2 = 0;
+        foreach ($listOrderDetail as $key => $orderDetail) {
+            $listProductItemShipping = DB::table('contihogar_product_item')
+                                            ->join('contihogar_product_item_shipping','contihogar_product_item_shipping.id_product_item','=','contihogar_product_item.id_product_item')
+                                            ->where('contihogar_product_item.id_product','=',$orderDetail->product_id)
+                                            ->select(
+                                                'contihogar_product_item_shipping.alto',
+                                                'contihogar_product_item_shipping.ancho',
+                                                'contihogar_product_item_shipping.profundidad',
+                                                'contihogar_product_item_shipping.peso',
+                                                'contihogar_product_item_shipping.cantidad',
+                                                'contihogar_product_item_shipping.id_category_shipping'
+                                            )->get();
+            foreach ($listProductItemShipping as $key => $productItemShipping) {
+                $shippingCostFormula = 0;
+                $shippingCostCategory = 0;
+
+                $altoAnchoProf = ((int)$productItemShipping->alto * (int)$productItemShipping->ancho * (int)$productItemShipping->profundidad / 6000);
+                $altoAnchoProf = $altoAnchoProf > (int)$productItemShipping->peso?$altoAnchoProf:(int)$productItemShipping->peso;
+                $sqlCarrierCost = DB::table('contihogar_carga_provincia')
+                                    ->where('contihogar_carga_provincia.id_state','=',$oAddress["id_state"])
+                                    ->where('contihogar_carga_provincia.id_provincia','=',$oAddress["id_provincia"])
+                                    ->where('contihogar_carga_provincia.id_distrito','=',$oAddress["id_distrito"])
+                                    ->select(
+                                        'contihogar_carga_provincia.id_carrier',
+                                        DB::raw('(contihogar_carga_provincia.kilo_base_final +('.floatval($altoAnchoProf).' - 1) * contihogar_carga_provincia.kilo_adicional * '.(int)$productItemShipping->cantidad.') as costo')
+                                    )
+                                    ->orderBy('costo','ASC')->first();
+                if($sqlCarrierCost && $sqlCarrierCost != FALSE){
+                    $shippingCostFormula += ($sqlCarrierCost->costo == NULL? 0:floatval($sqlCarrierCost->costo));
+                    $id_carrier1 = ($sqlCarrierCost->id_carrier == NULL?3:(int)$sqlCarrierCost->id_carrier);
+                }
+
+                if($productItemShipping->id_category_shipping != 0 && $productItemShipping->id_category_shipping != 11){
+                    $sqlCarrierCategory = DB::table('contihogar_carrier_category')
+                                            ->where('contihogar_carrier_category.id_provincia','=',$oAddress["id_state"])
+                                            ->where('contihogar_carrier_category.id_provincia','=',$oAddress["id_provincia"])
+                                            ->where('contihogar_carrier_category.id_distrito','=',$oAddress["id_distrito"])
+                                            ->where('contihogar_carrier_category.id_category','=',$productItemShipping->id_category_shipping)
+                                            ->select(
+                                                'contihogar_carrier_category.id_carrier',
+                                                DB::raw('MIN(contihogar_carrier_category.costo) as costo')
+                                            )->first();
+
+                    if($sqlCarrierCategory){
+                        $shippingCostCategory += ($sqlCarrierCategory->costo == NULL?0:floatval($sqlCarrierCategory->costo));
+                        $id_carrier2 = $sqlCarrierCategory->id_carrier;
+                    }
+
+                    if($shippingCostFormula < $shippingCostCategory && $shippingCostCategory > 0){
+                        $shipping_cost += $shippingCostFormula * $orderDetail->product_quantity;
+                        $id_carrier2 = 0;
+                    }else{
+                        $shipping_cost += $shippingCostFormula * $orderDetail->product_quantity;
+                        $id_carrier2 = 0;
+                    }
+
+                    if($shippingCostCategory < $shippingCostFormula && $shippingCostFormula > 0){
+                        $shipping_cost += $shippingCostCategory * $orderDetail->product_quantity;
+                        $id_carrier1 = 0;
+                    }else{
+                        $shipping_cost += $shippingCostCategory * $orderDetail->product_quantity;
+                        $id_carrier1 = 0;
+                    }
+                }
+            }
+        }
+        return response()->json(array("cost_shipping"=>($shipping_cost / $this->tax_payout_passarella),"id_carrier"=>($id_carrier1 == 0)?$id_carrier2:$id_carrier1),200);
+    }
 }
+
